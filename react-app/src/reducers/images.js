@@ -5,6 +5,8 @@ import {
     EDIT_IMAGE_FAIL,
     UPDATE_IMAGE_SUCCESS,
     UPDATE_IMAGE_FAIL,
+    GET_IMAGES_PAGINATED_SUCCESS,
+    GET_IMAGES_PAGINATED_FAIL,
     DELETE_IMAGE_SUCCESS,
     DELETE_IMAGE_FAIL,
     GET_IMAGES_SUCCESS,
@@ -12,7 +14,10 @@ import {
 } from "../actions/type";
 
 const initialState = {
-    images: []
+    images: [],
+    page: 1,
+    size: 20,
+    allLoaded: false
 }
 
 export default function (state = initialState, action) {
@@ -52,9 +57,25 @@ export default function (state = initialState, action) {
         case GET_IMAGES_SUCCESS:
             return {
                 ...state,
-                images: payload.images
+                images: payload.images,
+                page: 1,
+                size: 20,
+                allLoaded: true
             };
         case GET_IMAGES_FAIL:
+            return {
+                ...state,
+                images: []
+            };
+        case GET_IMAGES_PAGINATED_SUCCESS:
+            console.log(state.allLoaded)
+            return {
+                ...state,
+                images: [...state.images , ...payload.images],
+                page: state.page + 1,
+                allLoaded: payload.images.length < 20,
+            };
+        case GET_IMAGES_PAGINATED_FAIL:
             return {
                 ...state,
                 images: []

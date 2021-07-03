@@ -4,15 +4,11 @@ const comments = require('./routes/comments');
 const auth = require('./routes/auth');
 const history = require('connect-history-api-fallback');
 const path = require('path');
-const MySQLStore = require('express-mysql-session')
 
 const app = express();
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
 
-//authentication
-const session = require('express-session')
-const { passport }  = require('./middleware/passport')
 const cors = require('cors');
 app.use(cors({origin:true,credentials: true}));
 
@@ -38,17 +34,9 @@ const options = {
     host: 'localhost',
     user: 'root',
     password: '',
-    database: 'imagesDB'
+    database: 'reactImagesDB'
 };
-const sessionStore = new MySQLStore(options);
-app.use(session({
-    secret: 'rhafhsdlaflj',
-    resave: false,
-    saveUninitialized: false,
-    store: sessionStore,
-}))
-app.use(passport.initialize())
-app.use(passport.session())
+
 app.use('/api', images);
 app.use('/comments', comments)
 app.use('/auth', auth);

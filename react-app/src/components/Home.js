@@ -8,7 +8,7 @@ const Home = () => {
     useEffect(() => {
         ImageService.getAll().then(
             (response) => {
-                setContent(response.data[0].email);
+                setContent(response.data[0]);
             },
             (error) => {
                 const message =

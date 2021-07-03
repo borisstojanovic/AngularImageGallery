@@ -32,12 +32,12 @@ const ImageItem = (props) => {
                 </CardContent>
             </CardActionArea>
             <CardActions style={{justifyContent: "center"}}>
-                {currentUser && props.image.user.id !== currentUser.id &&
+                {currentUser && props.image.user.id === currentUser.id &&
                     <Button size="small" color="primary">
                         <EditIcon/>
                     </Button>
                 }
-                {currentUser && props.image.user.id !== currentUser.id &&
+                {currentUser && props.image.user.id === currentUser.id &&
                     <Button size="small" color="primary">
                         <DeleteIcon/>
                     </Button>

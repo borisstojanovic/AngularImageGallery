@@ -1,40 +1,25 @@
 import React, {useEffect} from "react";
 import { Redirect } from 'react-router-dom';
 import { useDispatch, useSelector} from "react-redux";
-import {Image} from 'cloudinary-react';
-import {getAll} from '../../actions/images'
-import { makeStyles } from '@material-ui/core/styles';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import {getAllPaginated} from '../../actions/images'
 import Masonry from "react-masonry-css"
 import ImageItem from "../ImageItem"
 
-const useStyles = makeStyles((theme) => ({
-    root: {
-        display: 'flex',
-        flexWrap: 'wrap',
-        justifyContent: 'space-around',
-        overflow: 'hidden',
-        backgroundColor: theme.palette.background.paper,
-    },
-    icon: {
-        color: 'rgba(255, 255, 255, 0.54)',
-    },
-}));
-
 const ImagesList = () => {
-    const classes = useStyles();
 
     const { user: currentUser } = useSelector((state) => state.auth);
-    const { images: images } = useSelector((state) => state.images);
+    const { images: images, page: page, size: size } = useSelector((state) => state.images);
 
     const dispatch = useDispatch();
 
-    useEffect(() => {
-        dispatch(getAll());
-    }, [dispatch]);
-
-    if (!currentUser) {
-        return <Redirect to="/login" />;
+    const getAllImages = () => {
+        dispatch(getAllPaginated(page, size));
     }
+
+    useEffect(() => {
+        dispatch(getAllPaginated(page, size));
+    }, [dispatch]);
 
     const breakpointColumnsObj = {
         default: 4,
@@ -45,18 +30,31 @@ const ImagesList = () => {
 
     return (
         <div>
-            <Masonry
-                breakpointCols={breakpointColumnsObj}
-                className="my-masonry-grid"
-                columnClassName="my-masonry-grid_column"
+            <InfiniteScroll
+                dataLength={images.length} //This is important field to render the next data
+                next={getAllImages}
+                hasMore={true}
+                loader={<h4>Loading...</h4>}
+                endMessage={
+                    <p style={{ textAlign: 'center' }}>
+                        <b>Yay! You have seen it all</b>
+                    </p>
+                }
             >
-                {images.map((image) => (
-                    <div key={image.id}>
-                        <ImageItem image={image}/>
-                    </div>
+                <Masonry
+                    breakpointCols={breakpointColumnsObj}
+                    className="my-masonry-grid"
+                    columnClassName="my-masonry-grid_column"
+                >
+                    {images.map((image) => (
+                        <div key={image.id}>
+                            <ImageItem image={image}/>
+                        </div>
 
-                ))}
-            </Masonry>
+                    ))}
+                </Masonry>
+            </InfiniteScroll>
+
         </div>
     );
 }

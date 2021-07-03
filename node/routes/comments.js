@@ -2,6 +2,7 @@ const express = require('express');
 const Joi = require('joi');
 const { mysql } = require('../utils/database');
 const { authMiddleware } = require('../middleware/auth')
+const authJwt = require("../middleware/authJwt");
 
 //database setup
 const { pool } = require('../utils/database');
@@ -64,7 +65,7 @@ route.get('/comment/:id', (req, res) => {
 });
 
 //sluzi samo da se promeni content
-route.put('/edit/:id', authMiddleware, (req, res) => {
+route.put('/edit/:id', [authJwt.verifyToken], (req, res) => {
     if(req.body === undefined){
         res.status(400).send(new Error('Body empty error').message);
     } else {
@@ -117,7 +118,7 @@ route.put('/edit/:id', authMiddleware, (req, res) => {
     }
 });
 
-route.post('/comment', authMiddleware, (req, res) => {
+route.post('/comment', [authJwt.verifyToken], (req, res) => {
 
     if(req.user.user_id !== req.body.user_id){
         return res.status(401).send(new Error('Unauthorized post').message);
@@ -147,7 +148,7 @@ route.post('/comment', authMiddleware, (req, res) => {
     }
 });
 
-route.delete('/comment/:id', authMiddleware, (req, res) => {
+route.delete('/comment/:id', [authJwt.verifyToken], (req, res) => {
     let query = 'select * from comment where id=?';
     let formatted = mysql.format(query, [req.params.id]);
     pool.query(formatted, (err, rows) => {

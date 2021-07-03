@@ -4,6 +4,7 @@ const { mysql } = require('../utils/database');
 const fs = require('fs');
 const { cloudinary } = require('../utils/cloudinary');
 const { authMiddleware } = require('../middleware/auth')
+const authJwt = require("../middleware/authJwt");
 
 //multer setup
 const uploads = require('./uploads');
@@ -16,7 +17,8 @@ const route = express.Router();
 
 const scheme = Joi.object().keys({
     owner_id: Joi.number().required(),
-    description: Joi.string().max(128).required(),
+    description: Joi.string().max(256).required(),
+    title: Joi.string().max(128).required(),
 });
 
 const removefile = function(path){
@@ -24,6 +26,37 @@ const removefile = function(path){
         if(err){
             throw new Error(err.message);
         }
+    })
+}
+
+function isLike(user_id, image_id) {
+    let query = 'select * from `like` where user_id=? and image_id=?'
+    let formatted = mysql.format(query, [user_id, image_id])
+    return new Promise((resolve, reject) => {
+        pool.query(formatted, (err, response) => {
+            if(err) reject(err)
+            else{
+                if(response[0]){
+                    if(response[0].is_like) resolve(true);
+                    else resolve(false);
+                }
+                else resolve(null);
+            }
+        })
+    })
+}
+
+function isFavorite(user_id, image_id) {
+    let query = 'select * from `like` where user_id=? and image_id=?'
+    let formatted = mysql.format(query, [user_id, image_id])
+    return new Promise((resolve, reject) => {
+        pool.query(formatted, (err, response) => {
+            if(err) reject(err)
+            else{
+                if(response[0]) resolve(true)
+                else resolve(false);
+            }
+        })
     })
 }
 
@@ -48,18 +81,127 @@ route.get('/images',   (req, res) => {
         else {
             for (const row of rows) {
                 row.path = cloudinary.url(row.path);
-                await getUser(row.owner_id).then( response => {
+                await getUser(row.owner_id).then(response => {
                     row.user = response;
                 }).catch( err => {
-                    return res.status(400).send(err.message)
+                    return res.status(400).send(err.message);
                 });
+                if(req.user){
+                    await isFavorite(req.user.user_id, row.id).then(response => {
+                        row.isFavorite = response;
+                    }).catch(err => {
+                        return res.status(400).send(err.message);
+                    })
+                    await isLike(req.user.user_id, row.id).then(response => {
+                        row.isLike = response;
+                    }).catch(err => {
+                        return res.status(400).send(err.message);
+                    })
+                }
             }
             res.send(rows);
         }
     });
 });
 
-route.get('/images/:id', authMiddleware,   (req, res) => {
+route.get('/images/count', (req, res) => {
+    let query = 'select count(*) from images';
+    pool.query(query, async (err, count) => {
+        if (err)
+            res.status(500).send(err.sqlMessage);
+        else
+            res.send(count);
+    });
+})
+
+/**
+ * Returns all images paginated using the page and size query params
+ */
+route.get('/images/paginated/:page/:size',   (req, res) => {
+    let size = req.params.size;
+    let start = (req.params.page - 1) * size;
+    let query = 'select * from images order by time limit ?,? ';
+    let formatted = mysql.format(query, [start, parseInt(size)]);
+    pool.query(formatted, async (err, rows) => {
+        if (err)
+            res.status(500).send(err.sqlMessage);
+        else {
+            for (const row of rows) {
+                row.path = cloudinary.url(row.path);
+                await getUser(row.owner_id).then( response => {
+                    row.user = response;
+                }).catch( err => {
+                    return res.status(400).send(err.message)
+                });
+                if(req.user) {
+                    await isFavorite(req.user.user_id, row.id).then(response => {
+                        row.isFavorite = response;
+                    }).catch(err => {
+                        return res.status(400).send(err.message);
+                    })
+                    await isLike(req.user.user_id, row.id).then(response => {
+                        row.isLike = response;
+                    }).catch(err => {
+                        return res.status(400).send(err.message);
+                    })
+                }
+            }
+            res.send(rows);
+        }
+    });
+});
+
+/**
+ * used to search all images by their titles
+ * pass title parameter to match the titles
+ * pass page and size parameters for pagination
+ *
+ * returns rows matching the given parameters
+ */
+route.get('/images/searchByTitle/:title/:page/:size',   (req, res) => {
+    let title = req.params.title;
+    let size = req.params.size;
+    let start = (req.params.page - 1) * size;
+    let query = 'select * from images where title like %?% order by time limit start, size';
+    let formatted = mysql.format(query, [title, start, size]);
+    pool.query(formatted, async (err, rows) => {
+        if (err)
+            res.status(500).send(err.sqlMessage);
+        else {
+            pool.query('select')
+            for (const row of rows) {
+                row.path = cloudinary.url(row.path);
+                await getUser(row.owner_id).then( response => {
+                    row.user = response;
+                }).catch( err => {
+                    return res.status(400).send(err.message)
+                });
+                if(req.user) {
+                    await isFavorite(req.user.user_id, row.id).then(response => {
+                        row.isFavorite = response;
+                    }).catch(err => {
+                        return res.status(400).send(err.message);
+                    })
+                    await isLike(req.user.user_id, row.id).then(response => {
+                        row.isLike = response;
+                    }).catch(err => {
+                        return res.status(400).send(err.message);
+                    })
+                }
+            }
+            res.send(rows);
+        }
+    });
+});
+
+/**
+ * used to search all images by their user id
+ * pass title parameter to match the titles
+ * pass page and size parameters for pagination
+ *
+ * returns rows matching the given parameters
+ */
+route.get('/images/:id',   (req, res) => {
     let query = 'select * from images where owner_id=?';
     let formatted = mysql.format(query, [req.params.id]);
     pool.query(formatted, async (err, rows) => {
@@ -73,19 +215,30 @@ route.get('/images/:id', authMiddleware,   (req, res) => {
                 }).catch( err => {
                     return res.status(400).send(err.message)
                 });
+                if(req.user) {
+                    await isFavorite(req.user.user_id, row.id).then(response => {
+                        row.isFavorite = response;
+                    }).catch(err => {
+                        return res.status(400).send(err.message);
+                    })
+                    await isLike(req.user.user_id, row.id).then(response => {
+                        row.isLike = response;
+                    }).catch(err => {
+                        return res.status(400).send(err.message);
+                    })
+                }
             }
             res.send(rows);
         }
     });
 });
 
-route.post('/images', images.single('image'), authMiddleware, async (req, res) => {
+route.post('/images', images.single('image'), [authJwt.verifyToken], async (req, res) => {
     if(req.file === undefined){
         res.status(400).send(new Error('Please submit a file').message);
     }else {
         let {error} = Joi.validate(req.body, scheme);
         if(req.user.user_id !== parseInt(req.body.owner_id)){
-            console.log(req.body.owner_id)
             removefile(req.file.path);
             return res.status(401).send(new Error('Unauthorized edit').sqlMessage);
         }
@@ -93,7 +246,7 @@ route.post('/images', images.single('image'), authMiddleware, async (req, res) =
             removefile(req.file.path);
             res.status(400).send(error.details[0].message);
         } else {
-            let query = "insert into images (owner_id, description, path) values (?, ?, ?)";
+            let query = "insert into images (title, owner_id, description, path) values (?, ?, ?, ?)";
             let path = req.file.path;
             let uploadedResponse = null
             await cloudinary.uploader.upload(path).then(response => {
@@ -103,7 +256,7 @@ route.post('/images', images.single('image'), authMiddleware, async (req, res) =
             })
             removefile(path); //posto je snimljen na cdn brisem ga iz fs-a
             path = uploadedResponse.public_id; //postavljam path na URL koji vraca upload
-            let formatted = mysql.format(query, [req.body.owner_id, req.body.description, path]);
+            let formatted = mysql.format(query, [req.body.title, req.body.owner_id, req.body.description, path]);
 
             pool.query(formatted, (err, response) => {
                 if (err)
@@ -121,6 +274,16 @@ route.post('/images', images.single('image'), authMiddleware, async (req, res) =
                             }).catch( err => {
                                 return res.status(400).send(err.message)
                             });
+                            await isFavorite(req.user.user_id, rows[0].id).then(response => {
+                                rows[0].isFavorite = response;
+                            }).catch(err => {
+                                return res.status(400).send(err.message);
+                            })
+                            await isLike(req.user.user_id, rows[0].id).then(response => {
+                                rows[0].isLike = response;
+                            }).catch(err => {
+                                return res.status(400).send(err.message);
+                            })
                             res.send(rows[0]);
                         }
                     });
@@ -130,7 +293,7 @@ route.post('/images', images.single('image'), authMiddleware, async (req, res) =
     }
 });
 
-route.get('/image/:id', authMiddleware, (req, res) => {
+route.get('/image/:id', [authJwt.verifyToken], (req, res) => {
     let query = 'select * from images where id=?';
     let formated = mysql.format(query, [req.params.id]);
 
@@ -146,13 +309,25 @@ route.get('/image/:id', authMiddleware, (req, res) => {
             }).catch( err => {
                 return res.status(400).send(err.message)
             });
+            await isFavorite(req.user.user_id, rows[0].id).then(response => {
+                rows[0].isFavorite = response;
+            }).catch(err => {
+                return res.status(400).send(err.message);
+            })
+            await isLike(req.user.user_id, rows[0].id).then(response => {
+                rows[0].isLike = response;
+            }).catch(err => {
+                return res.status(400).send(err.message);
+            })
             res.send(rows[0]);
         }
     });
 });
 
-//sluzi samo da se promene username i description
-route.put('/edit/:id', authMiddleware, images.none(), (req, res) => {
+/**
+ * Used when changing only the title and description without the image path
+ */
+route.put('/edit/:id', authJwt.verifyToken, images.none(), (req, res) => {
     if(req.body === undefined){
         res.status(400).send(new Error('Body empty error').sqlMessage);
     } else {
@@ -163,8 +338,8 @@ route.put('/edit/:id', authMiddleware, images.none(), (req, res) => {
         if (error)
             res.status(400).send(error.details[0].message);
         else {
-            let query = "update images set owner_id=?, description=? where id=?";
-            let formated = mysql.format(query, [req.body.owner_id, req.body.description, req.params.id]);
+            let query = "update images set owner_id=?, description=?, title=? where id=?";
+            let formated = mysql.format(query, [req.body.owner_id, req.body.description, req.body.title, req.params.id]);
 
             pool.query(formated, (err, response) => {
                 if (err)
@@ -205,7 +380,11 @@ const uploadToCloudinary = function(image) {
     });
 }
 
-route.put('/image/:id', authMiddleware, images.single('image'), async (req, res) => {
+/**
+ * Edits the image matching the id passed as the query parameter
+ * Used when changing the image path at the same time as the other fields
+ */
+route.put('/image/:id', [authJwt.verifyToken], images.single('image'), async (req, res) => {
     if(req.file === undefined){
         res.status(400).send(new Error('Please submit a file').sqlMessage);
     }else {
@@ -242,14 +421,16 @@ route.put('/image/:id', authMiddleware, images.single('image'), async (req, res)
             })
             path = uploadedResponse.public_id;
             removefile(req.file.path);
-            let query = "update images set owner_id=?, description=?, path=? where id=?";
-            let formated = mysql.format(query, [req.body.owner_id, req.body.description, path, req.params.id]);
+            let query = "update images set title=?, owner_id=?, description=?, path=? where id=?";
+            let formated = mysql.format(query, [req.body.title, req.body.owner_id, req.body.description, path, req.params.id]);
 
             pool.query(formated, (err, response) => {
                 if (err) {
+                    //remove the new image from cloudinary if query fails
                     cloudinary.uploader.destroy(path, function (error, result) {});
                     res.status(500).send(err.sqlMessage);
                 } else {
+                    //remove old image from cloudinary if query succeeds
                     cloudinary.uploader.destroy(oldpath, function (error, result) {});
                     query = 'select * from images where id=?';
                     formated = mysql.format(query, [req.params.id]);
@@ -278,7 +459,26 @@ route.put('/image/:id', authMiddleware, images.single('image'), async (req, res)
     }
 });
 
-route.delete('/image/:id', authMiddleware, (req, res) => {
+/**
+ * Increments the views counter for the image matching the :id query parameter
+ */
+route.put('/image/incrementViews/:id', (req, res) => {
+    let query = 'update images set views=views+1 where id=?';
+    let formatted = mysql.format(query, [req.params.id]);
+    pool.query(formatted, (err, response) => {
+        if(err)
+            res.status(500).send(err.sqlMessage)
+        else
+            res.status(200).send(response)
+    })
+})
+
+/**
+ * Deletes the image with the id matching the query parameter
+ *
+ * Returns the image if successful, otherwise returns the sql error
+ */
+route.delete('/image/:id', [authJwt.verifyToken], (req, res) => {
     let query = 'select * from images where id=?';
     let formated = mysql.format(query, [req.params.id]);
     pool.query(formated, (err, rows) => {

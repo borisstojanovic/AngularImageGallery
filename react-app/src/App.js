@@ -15,6 +15,7 @@ import { logout } from "./actions/auth";
 import { clearMessage } from "./actions/apiMessage";
 
 import { history } from "./helpers/history";
+import Header from "./components/Header";
 
 const App = () => {
   const { user: currentUser } = useSelector((state) => state.auth);
@@ -33,10 +34,7 @@ const App = () => {
   return (
       <Router history={history}>
         <div>
-          <nav className="navbar navbar-light navbar-expand-lg bg-light">
-
-
-          </nav>
+          <Header/>
 
           <div className="container mt-3">
             <Switch>

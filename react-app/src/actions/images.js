@@ -7,7 +7,7 @@ import {
     GET_IMAGES_FAIL,
     DELETE_IMAGE_SUCCESS,
     DELETE_IMAGE_FAIL,
-    SET_MESSAGE,
+    SET_MESSAGE, GET_IMAGES_PAGINATED_SUCCESS, GET_IMAGES_PAGINATED_FAIL,
 } from "./type";
 
 import ImagesService from "../services/images";
@@ -141,6 +141,38 @@ export const getAll = () => (dispatch) => {
         );
 };
 
+export const getAllPaginated = (page, size) => (dispatch) => {
+    return ImagesService.getAllPaginated(page, size)
+        .then((response) => {
+                dispatch({
+                    type: GET_IMAGES_PAGINATED_SUCCESS,
+                    payload: { images: response.data },
+                });
+
+                return Promise.resolve();
+            },
+            (error) => {
+                const message =
+                    (error.response &&
+                        error.response.data &&
+                        error.response.data.message) ||
+                    error.message ||
+                    error.toString();
+
+                dispatch({
+                    type: GET_IMAGES_PAGINATED_FAIL,
+                });
+
+                dispatch({
+                    type: SET_MESSAGE,
+                    payload: message,
+                });
+
+                return Promise.reject();
+            }
+        );
+};
+
 export const getAllForUser = (userId) => (dispatch) => {
     return ImagesService.getAllForUser(userId)
         .then((response) => {
@@ -177,7 +209,6 @@ export const getAllForUser = (userId) => (dispatch) => {
 export const remove = (id) => (dispatch) => {
     return ImagesService.deleteImage(id)
         .then((response) => {
-                console.log(response)
                 dispatch({
                     type: DELETE_IMAGE_SUCCESS,
                     payload: { image: response.data },

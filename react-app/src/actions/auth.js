@@ -48,7 +48,6 @@ export const register = (username, email, password, password2, image) => (dispat
 export const login = (username, password) => (dispatch) => {
     return AuthService.login(username, password).then(
         (data) => {
-            console.log(data)
             dispatch({
                 type: LOGIN_SUCCESS,
                 payload: { user: data },
@@ -80,7 +79,7 @@ export const login = (username, password) => (dispatch) => {
 
 export const logout = () => (dispatch) => {
     AuthService.logout();
-    localStorage.setItem("user", null);
+    localStorage.removeItem("user");
     dispatch({
         type: LOGOUT,
     });

@@ -7,6 +7,10 @@ const getAll = () => {
     return axios.get(API_URL + "images", {withCredentials: true});
 };
 
+const getAllPaginated = (page, size) => {
+    return axios.get(API_URL + "images/paginated/" + page + "/" + size, {withCredentials: true});
+};
+
 const getAllForUser = (id) => {
     return axios.get(API_URL + "images/" + id, {withCredentials: true});
 };
@@ -62,7 +66,8 @@ const images = {
     addImage,
     editImage,
     updateImage,
-    deleteImage
+    deleteImage,
+    getAllPaginated
 }
 
 export default images;

@@ -2,12 +2,19 @@ const express = require('express');
 const { mysql } = require('../utils/database');
 const { pool } = require('../utils/database');
 const Joi = require('joi');
+const fs = require('fs');
+const { cloudinary } = require('../utils/cloudinary');
 const route = express.Router();
-const { passport } = require('../middleware/passport')
-const { authMiddleware } = require('../middleware/auth')
-const bodyParser = require('body-parser')
-const bcrypt = require('bcrypt')
-const saltRounds = 10
+const bodyParser = require('body-parser');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+const config = require('../utils/auth')
+let jwt = require("jsonwebtoken");
+const authJwt = require("../middleware/authJwt");
+
+//multer setup
+const uploads = require('./uploads');
+const images = uploads.images;
 
 const scheme = Joi.object().keys({
     username: Joi.string().trim().min(3).max(12).required(),
@@ -15,7 +22,8 @@ const scheme = Joi.object().keys({
 })
 
 const schemeRegister = Joi.object().keys({
-    username: Joi.string().trim().min(3).max(12).required(),
+    username: Joi.string().trim().min(3).max(24).required(),
+    email: Joi.string().trim().min(3).max(34).required(),
     password: Joi.string().min(3).max(24).required(),
     password2: Joi.string().min(3).max(24).required(),
 });
@@ -25,35 +33,36 @@ route.post("/signin", bodyParser.json(), (req, res, next) => {
     if (error) {
         return res.status(400).send(error.details[0].message);
     }
-    passport.authenticate("local", (err, user, info) => {
-        if (err) {
-            return res.status(400).send(err.message);
+    let query = 'select * from user where username=?';
+    let formatted = mysql.format(query, [req.body.username]);
+    pool.query(formatted, (err, rows) => {
+        if(err) res.status(500).send("Server Error");
+        else if(rows.length === 0)res.status(404).send({message: "User Doesn't Exist!"});
+        else{
+            let hash = rows[0].password.toString();
+
+            bcrypt.compare(req.body.password, hash, (err, response) => {
+                if(response === true){
+                    rows[0].accessToken = jwt.sign({id: rows[0].id}, config.secret, {
+                        expiresIn: 86400 // 24 hours
+                    });
+                    res.status(200).send(rows[0]);
+                }else if(err) res.status(500).send("Server Error");
+                else res.status(403).send("Wrong Password")
+            })
         }
-
-        if (!user) {
-            return res.status(400).send([user, "Cannot log in", info]);
-        }
-
-        req.login(user, err => {
-            if(err){
-                res.send(err)
-            }
-            let query = 'select * from user where id=?';
-            let formated = mysql.format(query, user.user_id);
-
-            pool.query(formated, (err, rows) => {
-                if (err) {
-                    res.status(500).send(err.sqlMessage);
-                }
-                else {
-                    return res.send(rows[0]);
-                }
-            });
-        });
-    })(req, res, next);
+    })
 });
 
-route.post("/register", bodyParser.json(), (req, res) => {
+const removefile = function(path){
+    fs.unlink(path, (err) => {
+        if(err){
+            throw new Error(err.message);
+        }
+    })
+}
+
+route.post("/register", images.single('image'), (req, res) => {
     let {error} = Joi.validate(req.body, schemeRegister);
 
     if (error) {
@@ -77,19 +86,23 @@ route.post("/register", bodyParser.json(), (req, res) => {
             }
         }
     });
-    let query2 = "insert into user (username, password) values (?, ?)";
-    bcrypt.hash(password, saltRounds, (err, hash) => {
-        if(err){
-            return res.send(err)
-        }
-        let formatted2 = mysql.format(query2, [username, hash]);
+    let query2 = "insert into user (username, password, email, path) values (?, ?, ?, ?)";
+    bcrypt.hash(password, saltRounds, async (err, hash) => {
+        if(err) return res.status(500).send(err)
+
+        let path = req.file.path;
+        let uploadedResponse = null
+        await cloudinary.uploader.upload(path).then(response => {
+            uploadedResponse = response;
+        }).catch( error => {
+            res.status(400).send(error.sqlMessage);
+        })
+        removefile(path); //posto je snimljen na cdn brisem ga iz fs-a
+        path = uploadedResponse.public_id; //postavljam path na URL koji vraca upload
+        let formatted2 = mysql.format(query2, [username, hash, req.body.email, path]);
         pool.query(formatted2, (err, response) => {
-            if (err) {
-                res.status(500).send(err.sqlMessage);
-            }
-            else {
-                res.send(response[0]);
-            }
+            if(err) res.status(500).send(err.sqlMessage);
+            else res.send(response[0]);
         })
     })
 
@@ -101,7 +114,7 @@ route.get("/logout", function(req, res) {
     return res.send();
 });
 
-route.get("/user", authMiddleware, (req, res) => {
+route.get("/user", [authJwt.verifyToken], (req, res) => {
     let user = req.session.passport.user.user_id;
     let query = 'select * from user where id=?';
     let formated = mysql.format(query, user);

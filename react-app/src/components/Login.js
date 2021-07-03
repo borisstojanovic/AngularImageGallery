@@ -26,7 +26,7 @@ const Login = (props) => {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const { isLoggedIn } = useSelector(state => state.auth);
+    const { isLoggedIn, user } = useSelector(state => state.auth);
     const { message } = useSelector(state => state.message);
 
     const dispatch = useDispatch();
@@ -51,8 +51,10 @@ const Login = (props) => {
         if (checkBtn.current.context._errors.length === 0) {
             dispatch(login(username, password))
                 .then(() => {
-                    props.history.push("/profile");
-                    window.location.reload();
+                    console.log(isLoggedIn)
+                    console.log(user)
+                    //props.history.push("/profile");
+                    //window.location.reload();
                 })
                 .catch(() => {
                     setLoading(false);
