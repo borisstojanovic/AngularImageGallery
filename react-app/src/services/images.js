@@ -1,73 +1,92 @@
 import axios from "axios";
 import FormData from "form-data";
+import authMultipartHeader from "./auth-multipart-header";
+import authHeader from "./auth-header";
 
 const API_URL = "http://localhost:8080/api/";
 
 const getAll = () => {
-    return axios.get(API_URL + "images", {withCredentials: true});
+    return axios.get(API_URL + "images/all", {headers: authHeader()});
 };
 
 const getAllPaginated = (page, size) => {
-    return axios.get(API_URL + "images/paginated/" + page + "/" + size, {withCredentials: true});
+    return axios.get(API_URL + "images/paginated/" + page + "/" + size, {headers: authHeader()});
 };
 
-const getAllForUser = (id) => {
-    return axios.get(API_URL + "images/" + id, {withCredentials: true});
+const getAllByTitle = (title, page, size) => {
+    return axios.get(API_URL + "images/getAllByTitle/" + title + "/" + page + "/" + size, {headers: authHeader()});
+};
+
+const getAllForUser = (id, page, size) => {
+    return axios.get(API_URL + "images/getAllForUser/" + id + "/" + page + "/" + size, {headers: authHeader()});
 };
 
 const deleteImage = (id) => {
-    return axios.delete(API_URL + 'image/' + id, {withCredentials: true});
+    return axios.delete(API_URL + 'images/delete/' + id, {headers: authHeader()});
 }
 
-const editImage = (id, userId, description) => {
+const editImage = (id, title, userId, description) => {
     let formData = new FormData();
+    formData.append('title', title);
     formData.append('owner_id', userId);
     formData.append('description', description);
-    return axios.put(API_URL + 'edit/' + id, formData, {
-        withCredentials: true,
-        headers: {
-            'accept': 'application/json',
-            'Accept-Language': 'en-US,en;q=0.8',
-            'Content-Type': `multipart/form-data;`,
-        }});
+    return axios.put(API_URL + 'images/edit/' + id, formData, {headers: authMultipartHeader()});
 };
 
-const addImage = (userId, description, image) => {
+const addImage = (title, userId, description, image) => {
     let formData = new FormData();
+    formData.append('title', title);
     formData.append('owner_id', userId);
     formData.append('description', description);
     formData.append('image', image);
-    return axios.post(API_URL + "images", image, {
-        withCredentials: true,
-        headers: {
-            'accept': 'application/json',
-            'Accept-Language': 'en-US,en;q=0.8',
-            'Content-Type': `multipart/form-data;`,
-        }});
+    return axios.post(API_URL + "images/add", image, {headers: authMultipartHeader()});
 };
 
-const updateImage = (id, userId, description, image) => {
+const updateImage = (id, title, userId, description, image) => {
     let formData = new FormData();
+    formData.append('title', title);
     formData.append('owner_id', userId);
     formData.append('description', description);
     formData.append('image', image);
-    return axios.put(API_URL + 'image/' + id, formData, {
-        withCredentials: true,
-        headers: {
-            'accept': 'application/json',
-            'Accept-Language': 'en-US,en;q=0.8',
-            'Content-Type': `multipart/form-data;`,
-        }});
+    return axios.put(API_URL + 'images/update/' + id, formData, {headers: authMultipartHeader()});
 };
+
+const like = (user_id, image_id, is_like) => {
+    return axios.post(API_URL + "likes/add", {
+        user_id: user_id,
+        image_id: image_id,
+        is_like: is_like
+    }, {headers: authHeader()});
+}
+
+const removeLike = (user_id, image_id) => {
+    return axios.delete(API_URL + "likes/remove/" + user_id + "/" + image_id,{headers: authHeader()});
+}
+
+const favorite = (user_id, image_id) => {
+    return axios.post(API_URL + "favorites/add", {
+        user_id: user_id,
+        image_id: image_id,
+    }, {headers: authHeader()});
+}
+
+const removeFavorite = (user_id, image_id) => {
+    return axios.delete(API_URL + "favorites/remove/" + user_id + "/" + image_id,{headers: authHeader()});
+}
 
 const images = {
     getAll,
     getAllForUser,
+    getAllByTitle,
+    getAllPaginated,
     addImage,
     editImage,
     updateImage,
     deleteImage,
-    getAllPaginated
+    like,
+    removeLike,
+    favorite,
+    removeFavorite
 }
 
 export default images;

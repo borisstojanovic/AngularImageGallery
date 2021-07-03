@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Router, Switch, Route, Link } from "react-router-dom";
 
-import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 
 import Login from "./components/Login";
@@ -32,11 +31,21 @@ const App = () => {
   };
 
   return (
+      //blue-snow.png 8/10
+      //circle-blues.png 3/10
+      //cork-board.png 4/10
+      //denim.png 8.2/10
+      //denim_@2X.png 7/10
+      //dot-grid.png 8/10
+
       <Router history={history}>
-        <div>
+        <div className="root" style={{
+          backgroundImage: "url(/images/ep_naturalblack.png)",
+          backgroundRepeat: "repeat"
+        }}>
           <Header/>
 
-          <div className="container mt-3">
+          <div className="container">
             <Switch>
               <Route exact path={["/", "/home"]} component={Home} />
               <Route exact path="/login" component={Login} />

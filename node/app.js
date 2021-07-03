@@ -1,6 +1,8 @@
 const express = require('express');
 const images = require('./routes/images');
 const comments = require('./routes/comments');
+const like = require('./routes/like');
+const favorite = require('./routes/favorite');
 const auth = require('./routes/auth');
 const history = require('connect-history-api-fallback');
 const path = require('path');
@@ -37,8 +39,10 @@ const options = {
     database: 'reactImagesDB'
 };
 
-app.use('/api', images);
-app.use('/comments', comments)
+app.use('/api/images', images);
+app.use('/api/likes', like)
+app.use('/api/favorites', favorite);
+app.use('/api/comments', comments)
 app.use('/auth', auth);
 app.use(staticMiddleware);
 app.use(history());

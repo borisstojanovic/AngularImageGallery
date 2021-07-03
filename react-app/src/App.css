@@ -31,6 +31,42 @@ label {
   border-radius: 50%;
 }
 
+.root {
+  background: white;
+}
+
+.media-card{
+  background: #2f2f2f;
+  color: #f7f7f7;
+}
+
+.media-action-bar{
+  justify-content: center;
+  background: #2f2f2f;
+}
+
+.container {
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+}
+@media (min-width: 768px) {
+  .container {
+    width: 750px;
+  }
+}
+@media (min-width: 992px) {
+  .container {
+    width: 970px;
+  }
+}
+@media (min-width: 1200px) {
+  .container {
+    width: 1170px;
+  }
+}
+
 .my-masonry-grid {
   display: flex;
   margin-left: -20px; /* gutter size offset */

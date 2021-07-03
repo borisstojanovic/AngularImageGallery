@@ -1,5 +1,4 @@
 import React, {useEffect} from "react";
-import { Redirect } from 'react-router-dom';
 import { useDispatch, useSelector} from "react-redux";
 import InfiniteScroll from 'react-infinite-scroll-component';
 import {getAllPaginated} from '../../actions/images'
@@ -7,9 +6,7 @@ import Masonry from "react-masonry-css"
 import ImageItem from "../ImageItem"
 
 const ImagesList = () => {
-
-    const { user: currentUser } = useSelector((state) => state.auth);
-    const { images: images, page: page, size: size } = useSelector((state) => state.images);
+    const { images: images, page: page, size: size, allLoaded: allLoaded } = useSelector((state) => state.images);
 
     const dispatch = useDispatch();
 
@@ -33,7 +30,7 @@ const ImagesList = () => {
             <InfiniteScroll
                 dataLength={images.length} //This is important field to render the next data
                 next={getAllImages}
-                hasMore={true}
+                hasMore={!allLoaded}
                 loader={<h4>Loading...</h4>}
                 endMessage={
                     <p style={{ textAlign: 'center' }}>

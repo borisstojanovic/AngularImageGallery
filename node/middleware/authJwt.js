@@ -19,8 +19,24 @@ let verifyToken = (req, res, next) => {
     });
 };
 
+let deserializeUser = (req, res, next) => {
+    let token = req.headers["authorization"];
+
+    if (token) {
+        jwt.verify(token, config.secret, (err, decoded) => {
+            if (!err) {
+                req.user = {
+                    user_id: decoded.id
+                }
+            }
+        })
+    }
+    next();
+}
+
 const authJwt = {
-    verifyToken
+    verifyToken,
+    deserializeUser
 };
 
 module.exports = authJwt;

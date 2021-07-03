@@ -1,16 +1,13 @@
 import {
     ADD_IMAGE_SUCCESS,
-    ADD_IMAGE_FAIL,
     EDIT_IMAGE_SUCCESS,
-    EDIT_IMAGE_FAIL,
-    UPDATE_IMAGE_SUCCESS,
-    UPDATE_IMAGE_FAIL,
     GET_IMAGES_PAGINATED_SUCCESS,
-    GET_IMAGES_PAGINATED_FAIL,
     DELETE_IMAGE_SUCCESS,
-    DELETE_IMAGE_FAIL,
     GET_IMAGES_SUCCESS,
-    GET_IMAGES_FAIL
+    LIKE_SUCCESS,
+    DELETE_LIKE_SUCCESS,
+    FAVORITE_SUCCESS,
+    DELETE_FAVORITE_SUCCESS
 } from "../actions/type";
 
 const initialState = {
@@ -29,10 +26,6 @@ export default function (state = initialState, action) {
                 ...state,
                 images: [...state.images, payload.image]
             };
-        case ADD_IMAGE_FAIL:
-            return {
-                ...state
-            };
         case EDIT_IMAGE_SUCCESS:
             return {
                 ...state,
@@ -41,18 +34,10 @@ export default function (state = initialState, action) {
                     payload.image,
                 ]
             };
-        case EDIT_IMAGE_FAIL:
-            return {
-                ...state,
-            };
         case DELETE_IMAGE_SUCCESS:
             return {
                 ...state,
                 images: state.images.filter(image => image.id !== payload.image.id),
-            };
-        case DELETE_IMAGE_FAIL:
-            return {
-                ...state,
             };
         case GET_IMAGES_SUCCESS:
             return {
@@ -62,23 +47,46 @@ export default function (state = initialState, action) {
                 size: 20,
                 allLoaded: true
             };
-        case GET_IMAGES_FAIL:
-            return {
-                ...state,
-                images: []
-            };
         case GET_IMAGES_PAGINATED_SUCCESS:
-            console.log(state.allLoaded)
             return {
                 ...state,
                 images: [...state.images , ...payload.images],
                 page: state.page + 1,
-                allLoaded: payload.images.length < 20,
+                allLoaded: (payload.images.length < 20 || state.images.length + payload.images.length >= 240),
             };
-        case GET_IMAGES_PAGINATED_FAIL:
+        case LIKE_SUCCESS:
             return {
                 ...state,
-                images: []
+                images: state.images.map(image => {
+                    if(image.id === payload.image_id) image.isLike = payload.is_like === 1;
+                    return image;
+                })
+            };
+        case DELETE_LIKE_SUCCESS:
+            return {
+                ...state,
+                images: state.images.map(image => {
+                    if(image.id === payload.image_id) image.isLike = null;
+                    return image;
+                })
+            };
+        case FAVORITE_SUCCESS:
+            return {
+                ...state,
+                images: state.images.map(image => {
+                    if(image.id === payload.image_id) image.isFavorite = true;
+
+                    return image;
+                })
+            };
+        case DELETE_FAVORITE_SUCCESS:
+            return {
+                ...state,
+                images: state.images.map(image => {
+                    if(image.id === payload.image_id) image.isFavorite = false;
+
+                    return image;
+                })
             };
         default:
             return state;

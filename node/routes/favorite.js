@@ -1,14 +1,18 @@
 const express = require('express');
 const { mysql } = require('../utils/database');
-const { authMiddleware } = require('../middleware/auth')
 const authJwt = require("../middleware/authJwt");
+const bodyParser = require('body-parser');
 
 //database setup
 const { pool } = require('../utils/database');
 
 const route = express.Router();
 
-route.get('/all',   (req, res) => {
+/**
+ * Returns all the favorites for the user
+ * Identifies the user using the jwt
+ */
+route.get('/all', [authJwt.verifyToken],  (req, res) => {
     let query = 'select * from favorite where user_id=?';
     let formatted = mysql.format(query, [req.user.user_id]);
     pool.query(formatted, (err, rows) => {
@@ -20,8 +24,12 @@ route.get('/all',   (req, res) => {
     });
 });
 
-route.post('/add', [authJwt.verifyToken], (req, res) => {
-
+/**
+ * Adds a new favorite to the database
+ * Takes user_id and image_id as body params
+ * Returns the new favorite
+ */
+route.post('/add', [authJwt.verifyToken], bodyParser.json(), (req, res) => {
     if(req.user.user_id !== req.body.user_id){
         return res.status(401).send(new Error('Unauthorized post').message);
     }
@@ -45,14 +53,18 @@ route.post('/add', [authJwt.verifyToken], (req, res) => {
 
 /**
  * Deletes the favorite matching userId and imageId parameters
+ * Returns the deleted favorite
  */
-route.delete('/:userId/:imageId', [authJwt.verifyToken], (req, res) => {
+route.delete('/remove/:userId/:imageId', [authJwt.verifyToken], (req, res) => {
     let query = 'select * from favorite where user_id=? and image_id=?';
     let formatted = mysql.format(query, [req.params.userId, req.params.imageId]);
     pool.query(formatted, (err, rows) => {
         if(err){
             res.status(500).send(err.sqlMessage);
         }else{
+            if(rows.length === 0){
+                return res.status(404).send("No Favorite In Database");
+            }
             let favorite = rows[0];
             if(favorite.user_id !== req.user.user_id){
                 res.status(401).send(new Error('Unauthorized delete'));

@@ -51,10 +51,8 @@ const Login = (props) => {
         if (checkBtn.current.context._errors.length === 0) {
             dispatch(login(username, password))
                 .then(() => {
-                    console.log(isLoggedIn)
-                    console.log(user)
-                    //props.history.push("/profile");
-                    //window.location.reload();
+                    props.history.push("/profile");
+                    window.location.reload();
                 })
                 .catch(() => {
                     setLoading(false);

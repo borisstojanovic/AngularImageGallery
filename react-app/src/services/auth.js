@@ -1,5 +1,6 @@
 import axios from "axios";
 import FormData from "form-data";
+import authMultipartHeader from "./auth-multipart-header";
 
 const API_URL = "http://localhost:8080/auth/";
 
@@ -11,12 +12,7 @@ const register = (username, email, password, password2, image) => {
     formData.append("password2", password2);
     formData.append("image", image);
 
-    return axios.post(API_URL + "register", formData, {
-        headers: {
-            'accept': 'application/json',
-            'Accept-Language': 'en-US,en;q=0.8',
-            'Content-Type': `multipart/form-data;`,
-    }});
+    return axios.post(API_URL + "register", formData, {headers: authMultipartHeader()});
 };
 
 const login = (username, password) => {
