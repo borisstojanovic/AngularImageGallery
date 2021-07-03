@@ -18,7 +18,7 @@ const required = (value) => {
     }
 };
 
-const Login = (props) => {
+const Login = ({history}) => {
     const form = useRef();
     const checkBtn = useRef();
 
@@ -51,7 +51,7 @@ const Login = (props) => {
         if (checkBtn.current.context._errors.length === 0) {
             dispatch(login(username, password))
                 .then(() => {
-                    props.history.push("/profile");
+                    history.push("/profile");
                     window.location.reload();
                 })
                 .catch(() => {

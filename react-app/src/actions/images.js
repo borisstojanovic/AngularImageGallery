@@ -104,7 +104,41 @@ export const getAllPaginated = (page, size) => (dispatch) => {
         .then((response) => {
                 dispatch({
                     type: GET_IMAGES_PAGINATED_SUCCESS,
-                    payload: { images: response.data },
+                    payload: { images: response.data, sort: "newest" },
+                });
+
+                return Promise.resolve();
+            },
+            (error) => {
+                sendErrorMessage(error, dispatch);
+                return Promise.reject();
+            }
+        );
+};
+
+export const getAllPaginatedSortByViews = (page, size) => (dispatch) => {
+    return ImagesService.getAllPaginated(page, size)
+        .then((response) => {
+                dispatch({
+                    type: GET_IMAGES_PAGINATED_SUCCESS,
+                    payload: { images: response.data, sort: "views"},
+                });
+
+                return Promise.resolve();
+            },
+            (error) => {
+                sendErrorMessage(error, dispatch);
+                return Promise.reject();
+            }
+        );
+};
+
+export const getAllPaginatedSortByLikes = (page, size) => (dispatch) => {
+    return ImagesService.getAllPaginated(page, size)
+        .then((response) => {
+                dispatch({
+                    type: GET_IMAGES_PAGINATED_SUCCESS,
+                    payload: { images: response.data, sort: "likes" },
                 });
 
                 return Promise.resolve();

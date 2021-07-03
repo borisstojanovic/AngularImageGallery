@@ -14,7 +14,9 @@ const initialState = {
     images: [],
     page: 1,
     size: 20,
-    allLoaded: false
+    allLoaded: false,
+    loading: false,
+    sort: "newest"
 }
 
 export default function (state = initialState, action) {
@@ -50,9 +52,10 @@ export default function (state = initialState, action) {
         case GET_IMAGES_PAGINATED_SUCCESS:
             return {
                 ...state,
-                images: [...state.images , ...payload.images],
-                page: state.page + 1,
+                images: (state.sort === payload.sort?[...state.images , ...payload.images] : payload.images),
+                page: (state.sort === payload.sort?state.page + 1 : 2),
                 allLoaded: (payload.images.length < 20 || state.images.length + payload.images.length >= 240),
+                sort: payload.sort
             };
         case LIKE_SUCCESS:
             return {

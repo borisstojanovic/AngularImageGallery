@@ -3,10 +3,8 @@ import {
     Toolbar,
     Typography,
     makeStyles,
-    Button,
     IconButton,
     Drawer,
-    Link,
     fade,
     MenuItem,
 } from "@material-ui/core";
@@ -14,39 +12,20 @@ import InputBase from '@material-ui/core/InputBase';
 import MenuIcon from '@material-ui/icons/Menu';
 import SearchIcon from '@material-ui/icons/Search';
 import React, { useState, useEffect } from "react";
-import { Router, Link as RouterLink } from "react-router-dom";
+import {Link as RouterLink, withRouter} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
-import {history} from "../helpers/history";
 import {clearMessage} from "../actions/apiMessage";
 import {logout} from "../actions/auth";
-
-const headersData = [
-    {
-        label: "Images",
-        href: "/listings",
-    },
-    {
-        label: "Register",
-        href: "/register",
-    },
-    {
-        label: "Login",
-        href: "/login",
-    },
-    {
-        label: "Log Out",
-    },
-];
+import PersonIcon from '@material-ui/icons/Person'; //profile
+import PowerSettingsNewIcon from '@material-ui/icons/PowerSettingsNew'; //logout
+import AddCircleIcon from '@material-ui/icons/AddCircle'; //add image
+import ExitToAppIcon from '@material-ui/icons/ExitToApp'; //login
+import PostAddIcon from '@material-ui/icons/PostAdd'; //register
+import PhotoAlbumIcon from '@material-ui/icons/PhotoAlbum';
+import Tooltip from "@material-ui/core/Tooltip";
+//images
 
 const useStyles = makeStyles((theme) => ({
-    header: {
-        backgroundColor: "#400CCC",
-        paddingRight: "79px",
-        paddingLeft: "118px",
-        "@media (max-width: 900px)": {
-            paddingLeft: 0,
-        },
-    },
     logo: {
         fontFamily: "Work Sans, sans-serif",
         fontWeight: 600,
@@ -59,9 +38,14 @@ const useStyles = makeStyles((theme) => ({
     },
     drawerContainer: {
         padding: "20px 30px",
+        height: "100vh",
+        background: "#AC3B61",
+        color: "#EEE2DC",
     },
     root: {
         flexGrow: 1,
+        background: "#AC3B61",
+        color: "#EEE2DC",
     },
     menuButton: {
         marginRight: theme.spacing(2),
@@ -114,10 +98,11 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-const Header = () => {
+const Header = (props) => {
     const classes = useStyles();
     const { user: currentUser } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
+    const history = props.history;
 
     useEffect(() => {
         history.listen((location) => {
@@ -127,14 +112,37 @@ const Header = () => {
 
     const logOut = () => {
         dispatch(logout());
+        history.push('/login');
     };
 
-    const { header, logo, menuButton, toolbar, drawerContainer } = useStyles();
+    const search = (e) => {
+        e.preventDefault();
+        if(input.length === 0){
+            return;
+        }
+        setState({drawerOpen: false, mobileView: mobileView});
+        if(input.startsWith("@")){
+            console.log(input + "starts with @");
+            //todo search by username return all images uploaded by that user
+        }else{
+            //todo search by image title
+            console.log(input);
+        }
+
+    };
+
+    const { logo, toolbar, drawerContainer } = useStyles();
 
     const [state, setState] = useState({
         mobileView: false,
         drawerOpen: false,
     });
+
+    const [input, setInput] = useState("");
+
+    const onChangeInput = (e) => {
+        setInput(e.target.value);
+    }
 
     const { mobileView, drawerOpen } = state;
 
@@ -158,24 +166,103 @@ const Header = () => {
         return (
             <Toolbar className={toolbar}>
                 {appLogo}
+                <div>
+                    {currentUser &&
+                    <IconButton
+                        color="inherit"
+                        className={classes.menuButton}
+                        edge="start"
+                        aria-label="menu"
+                        onClick={() => {history.push('/addImage')}}
+                    >
+                        <AddCircleIcon/>
+                        <Typography variant="subtitle1">Add Image</Typography>
+                    </IconButton>}
+                </div>
                 <div style={{justifyContent: "right"}}>
                     <div className={classes.search}>
                         <div className={classes.searchIcon}>
                             <SearchIcon />
                         </div>
-                        <InputBase
-                            placeholder="Images or @users…"
-                            classes={{
-                                root: classes.inputRoot,
-                                input: classes.inputInput,
-                            }}
-                            inputProps={{ 'aria-label': 'search' }}
-                        />
+                        <form className="App" onSubmit={search}>
+                            <InputBase
+                                placeholder="Images or @users…"
+                                classes={{
+                                    root: classes.inputRoot,
+                                    input: classes.inputInput,
+                                }}
+                                inputProps={{ 'aria-label': 'search' }}
+                                onChange={onChangeInput}
+                            />
+                        </form>
                     </div>
                 </div>
 
                 <div>
-                    {getMenuButtons()}
+                    <Tooltip title={<h3>List Images</h3>} arrow interactive>
+                        <IconButton
+                            color="inherit"
+                            className={classes.menuButton}
+                            edge="start"
+                            aria-label="menu"
+                            onClick={() => history.push('/images')}
+                        >
+                            <PhotoAlbumIcon/>
+                        </IconButton>
+                    </Tooltip>
+
+                    {currentUser &&
+                    <Tooltip title={<h3>Profile</h3>} arrow interactive>
+                        <IconButton
+                            color="inherit"
+                            className={classes.menuButton}
+                            edge="start"
+                            aria-label="menu"
+                            onClick={() => {history.push('/profile')}}
+                        >
+                            <PersonIcon/>
+                        </IconButton>
+                    </Tooltip>}
+                    {currentUser &&
+                    <Tooltip title={<h3>Logout</h3>} arrow interactive>
+                        <IconButton
+                            color="inherit"
+                            className={classes.menuButton}
+                            edge="start"
+                            aria-label="menu"
+                            onClick={logOut}
+                        >
+                            <PowerSettingsNewIcon/>
+                        </IconButton>
+                    </Tooltip>}
+
+                    {!currentUser &&
+                    <Tooltip title={<h3>Sign Up</h3>} arrow interactive>
+                        <IconButton
+                            color="inherit"
+                            className={classes.menuButton}
+                            edge="start"
+                            aria-label="menu"
+                            onClick={() => {history.push('/register')}}
+                        >
+                            <PostAddIcon/>
+                            <Typography variant="subtitle1">Sign Up</Typography>
+                        </IconButton>
+                    </Tooltip>}
+
+                    {!currentUser &&
+                    <Tooltip title={<h3>Login</h3>} arrow interactive>
+                        <IconButton
+                            color="inherit"
+                            className={classes.menuButton}
+                            edge="start"
+                            aria-label="menu"
+                            onClick={() => {history.push('/login')}}
+                        >
+                            <ExitToAppIcon/>
+                            <Typography variant="subtitle1">Login</Typography>
+                        </IconButton>
+                    </Tooltip>}
                 </div>
             </Toolbar>
         );
@@ -209,20 +296,122 @@ const Header = () => {
                     }}
                 >
                     <div className={drawerContainer}>
-                        <div className={classes.search}>
-                            <div className={classes.searchIcon}>
-                                <SearchIcon />
+                        <MenuItem>
+                            <div className={classes.search}>
+                                <div className={classes.searchIcon}>
+                                    <SearchIcon />
+                                </div>
+                                <form className="App" onSubmit={search}>
+                                    <InputBase
+                                        placeholder="Images or @users…"
+                                        classes={{
+                                            root: classes.inputRoot,
+                                            input: classes.inputInput,
+                                        }}
+                                        inputProps={{ 'aria-label': 'search' }}
+                                        onChange={onChangeInput}
+                                    />
+                                </form>
                             </div>
-                            <InputBase
-                                placeholder="Images or @users…"
-                                classes={{
-                                    root: classes.inputRoot,
-                                    input: classes.inputInput,
+                        </MenuItem>
+                        <MenuItem>
+                            {currentUser &&
+                            <IconButton
+                                color="inherit"
+                                className={classes.menuButton}
+                                edge="start"
+                                aria-label="menu"
+                                onClick={() => {
+                                    setState({drawerOpen: false, mobileView: mobileView})
+                                    history.push('/addImage');
                                 }}
-                                inputProps={{ 'aria-label': 'search' }}
-                            />
-                        </div>
-                        {getDrawerChoices()}
+                            >
+                                <AddCircleIcon/>
+                                <Typography variant="subtitle1">Add Image</Typography>
+                            </IconButton>}
+                        </MenuItem>
+                        <MenuItem>
+                            <IconButton
+                                color="inherit"
+                                className={classes.menuButton}
+                                edge="start"
+                                aria-label="menu"
+                                onClick={() => {
+                                    setState({drawerOpen: false, mobileView: mobileView})
+                                    history.push('/images');
+                                }}
+                            >
+                                <PhotoAlbumIcon/>
+                                <Typography variant="subtitle1">Images</Typography>
+                            </IconButton>
+                        </MenuItem>
+                        {currentUser &&
+                        <MenuItem>
+                            <IconButton
+                                color="inherit"
+                                className={classes.menuButton}
+                                edge="start"
+                                aria-label="menu"
+                                onClick={() => {
+                                    setState({drawerOpen: false, mobileView: mobileView})
+                                    history.push('/profile');
+                                }}
+                            >
+                                <PersonIcon/>
+                                <Typography variant="subtitle1">Profile</Typography>
+                            </IconButton>
+                        </MenuItem>}
+
+                        {currentUser &&
+                        <MenuItem>
+                            <IconButton
+                                color="inherit"
+                                className={classes.menuButton}
+                                edge="start"
+                                aria-label="menu"
+                                onClick={() => {
+                                    setState({drawerOpen: false, mobileView: mobileView})
+                                    logOut();
+                                }}
+                            >
+                                <PowerSettingsNewIcon/>
+                                <Typography variant="subtitle1">Logout</Typography>
+                            </IconButton>
+                        </MenuItem>}
+
+                        {!currentUser &&
+                        <MenuItem>
+                            <IconButton
+                                color="inherit"
+                                className={classes.menuButton}
+                                edge="start"
+                                aria-label="menu"
+                                onClick={() => {
+                                    setState({drawerOpen: false, mobileView: mobileView})
+                                    history.push('/register');
+                                }}
+                            >
+                                <PostAddIcon/>
+                                <Typography variant="subtitle1">Sign Up</Typography>
+                            </IconButton>
+                        </MenuItem>}
+
+                        {!currentUser &&
+                        <MenuItem>
+                            <IconButton
+                                color="inherit"
+                                className={classes.menuButton}
+                                edge="start"
+                                aria-label="menu"
+                                onClick={() => {
+                                    setState({drawerOpen: false, mobileView: mobileView})
+                                    history.push('/login');
+                                }}
+                            >
+                                <ExitToAppIcon/>
+                                <Typography variant="subtitle1">Login</Typography>
+                            </IconButton>
+                        </MenuItem>}
                     </div>
                 </Drawer>
 
@@ -231,46 +420,11 @@ const Header = () => {
         );
     };
 
-    const getDrawerChoices = () => {
-        return headersData.map(({ label, href }) => {
-            return (
-                <Link
-                    {...{
-                        component: RouterLink,
-                        to: href,
-                        color: "inherit",
-                        style: { textDecoration: "none" },
-                        key: label,
-                    }}
-                >
-                    <MenuItem>{label}</MenuItem>
-                </Link>
-            );
-        });
-    };
-
     const appLogo = (
         <Typography variant="h6" component="h1" className={logo}>
             Image Gallery
         </Typography>
     );
-
-    const getMenuButtons = () => {
-        return headersData.map(({ label, href }) => {
-            return (
-                <IconButton
-                    color="inherit"
-                    className={classes.menuButton}
-                    edge="start"
-                    aria-label="menu"
-                    onClick={logOut}
-                >
-                    <MenuIcon/>
-                    <Typography variant="h6"> Home</Typography>
-                </IconButton>
-            );
-        });
-    };
 
     return (
         <header>
@@ -281,41 +435,4 @@ const Header = () => {
     );
 }
 
-const Header1 = () => {
-    const classes = useStyles();
-
-    return (
-        <div className={classes.root}>
-            <AppBar position="static">
-                <Toolbar>
-                    <IconButton
-                        edge="start"
-                        className={classes.menuButton}
-                        color="inherit"
-                        aria-label="open drawer"
-                    >
-                        <MenuIcon />
-                    </IconButton>
-                    <Typography className={classes.title} variant="h6" noWrap>
-                        Material-UI
-                    </Typography>
-                    <div className={classes.search}>
-                        <div className={classes.searchIcon}>
-                            <SearchIcon />
-                        </div>
-                        <InputBase
-                            placeholder="Search…"
-                            classes={{
-                                root: classes.inputRoot,
-                                input: classes.inputInput,
-                            }}
-                            inputProps={{ 'aria-label': 'search' }}
-                        />
-                    </div>
-                </Toolbar>
-            </AppBar>
-        </div>
-    );
-}
-
-export default Header
+export default withRouter(Header)

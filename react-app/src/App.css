@@ -3,6 +3,12 @@ label {
   margin-top: 10px;
 }
 
+html, body {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
 .card-container.card {
   max-width: 350px !important;
   padding: 40px 40px;
@@ -11,8 +17,7 @@ label {
 .card {
   background-color: #f7f7f7;
   padding: 20px 25px 30px;
-  margin: 0 auto 25px;
-  margin-top: 50px;
+  margin: 50px auto 25px;
   -moz-border-radius: 2px;
   -webkit-border-radius: 2px;
   border-radius: 2px;
@@ -32,17 +37,18 @@ label {
 }
 
 .root {
-  background: white;
+  background: #eee2dc;
+  min-height: 100vh;
 }
 
 .media-card{
-  background: #2f2f2f;
-  color: #f7f7f7;
+  background: #fff4eb;
+  color: #123c69;
 }
 
 .media-action-bar{
-  justify-content: center;
-  background: #2f2f2f;
+  justify-content: space-evenly;
+  background: #fff4eb;
 }
 
 .container {
@@ -74,11 +80,11 @@ label {
 }
 
 .my-masonry-grid_column {
-  padding-left: 15px; /* gutter size */
+  padding-left: 10px; /* gutter size */
   background-clip: padding-box;
 }
 
 /* Style your items */
 .my-masonry-grid_column > div { /* change div to reference your elements you put in <Masonry> */
-  margin-bottom: 30px;
+  margin-bottom: 15px;
 }
