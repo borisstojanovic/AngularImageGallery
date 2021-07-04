@@ -23,6 +23,7 @@ import ExitToAppIcon from '@material-ui/icons/ExitToApp'; //login
 import PostAddIcon from '@material-ui/icons/PostAdd'; //register
 import PhotoAlbumIcon from '@material-ui/icons/PhotoAlbum';
 import Tooltip from "@material-ui/core/Tooltip";
+import {getAllByTitle, getAllForUser, getAllPaginatedSort} from '../actions/images'
 //images
 
 const useStyles = makeStyles((theme) => ({
@@ -101,8 +102,10 @@ const useStyles = makeStyles((theme) => ({
 const Header = (props) => {
     const classes = useStyles();
     const { user: currentUser } = useSelector((state) => state.auth);
+    const { sort: currentSort, page: page } = useSelector((state) => state.images);
     const dispatch = useDispatch();
     const history = props.history;
+    const size = 20;
 
     useEffect(() => {
         history.listen((location) => {
@@ -118,6 +121,7 @@ const Header = (props) => {
     const search = (e) => {
         e.preventDefault();
         if(input.length === 0){
+            dispatch(getAllPaginatedSort( 1, size, currentSort));
             return;
         }
         setState({drawerOpen: false, mobileView: mobileView});
@@ -125,8 +129,7 @@ const Header = (props) => {
             console.log(input + "starts with @");
             //todo search by username return all images uploaded by that user
         }else{
-            //todo search by image title
-            console.log(input);
+            dispatch(getAllByTitle(input, 1, size, currentSort));
         }
 
     };

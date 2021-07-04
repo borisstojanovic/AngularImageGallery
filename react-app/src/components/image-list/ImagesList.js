@@ -1,7 +1,10 @@
 import React, {useEffect, useState} from "react";
 import { useDispatch, useSelector} from "react-redux";
 import InfiniteScroll from 'react-infinite-scroll-component';
-import {getAllPaginated, getAllPaginatedSortByLikes, getAllPaginatedSortByViews} from '../../actions/images'
+import {
+    getAllByTitle, getAllForUser,
+    getAllPaginatedSort,
+} from '../../actions/images'
 import Masonry from "react-masonry-css"
 import ImageItem from "../ImageItem"
 import NativeSelect from '@material-ui/core/NativeSelect';
@@ -20,26 +23,27 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const ImagesList = () => {
-    const { images: images, page: page, size: size, allLoaded: allLoaded, sort: sortType } = useSelector((state) => state.images);
-
+    const { images: images, allLoaded: allLoaded, sort: sortType, search: search} = useSelector((state) => state.images);
+    const [state, setState] = useState({sort: "newest", page: 1});
+    const size = 20;
     const dispatch = useDispatch();
 
     const getAllImages = () => {
-        let pageNum = page;
+        let pageNum = state.page;
         if(state.sort !== sortType){
+            setState({sort: state.sort, page: 1});
             pageNum = 1;
         }
-        if(state.sort === "newest"){
-            dispatch(getAllPaginated(pageNum, size));
-        }else if(state.sort === "views"){
-            dispatch(getAllPaginatedSortByViews(pageNum, size));
-        }else{
-            dispatch(getAllPaginatedSortByLikes(pageNum, size));
-        }
+        setState({sort: state.sort, page: pageNum + 1})
+        if(search.length > 0)
+            dispatch(getAllByTitle(search, pageNum+1, size, state.sort));
+        else
+            dispatch(getAllPaginatedSort(pageNum+1, size, state.sort));
+
     }
 
     useEffect(() => {
-        dispatch(getAllPaginated(page, size));
+        dispatch(getAllPaginatedSort(state.page, size, state.sort));
     }, [dispatch]);
 
     const breakpointColumnsObj = {
@@ -51,17 +55,19 @@ const ImagesList = () => {
     };
 
     const classes = useStyles();
-    const [state, setState] = useState({sort: "Newest"});
 
     const handleChange = (event) => {
         const value = event.target.value;
-        setState({sort: value});
-        if(value === "newest")
-            dispatch(getAllPaginated(1, size));
-        else if(value === "views")
-            dispatch(getAllPaginatedSortByViews(1, size));
-        else
-            dispatch(getAllPaginatedSortByLikes(1, size));
+        setState({sort: value, page: 1});
+        if(search.length !== 0){
+            if(search.startsWith('@')){
+                dispatch(getAllForUser(search, 1, size, value));
+            }else{
+                dispatch(getAllByTitle(search, 1, size, value));
+            }
+        }else{
+            dispatch(getAllPaginatedSort(1, size, value));
+        }
     };
 
     return (

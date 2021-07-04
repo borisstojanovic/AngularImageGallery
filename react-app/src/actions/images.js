@@ -104,7 +104,7 @@ export const getAllPaginated = (page, size) => (dispatch) => {
         .then((response) => {
                 dispatch({
                     type: GET_IMAGES_PAGINATED_SUCCESS,
-                    payload: { images: response.data, sort: "newest" },
+                    payload: { images: response.data, sort: "", search: ""},
                 });
 
                 return Promise.resolve();
@@ -116,12 +116,12 @@ export const getAllPaginated = (page, size) => (dispatch) => {
         );
 };
 
-export const getAllPaginatedSortByViews = (page, size) => (dispatch) => {
-    return ImagesService.getAllPaginated(page, size)
+export const getAllPaginatedSort = (page, size, sort) => (dispatch) => {
+    return ImagesService.getAllPaginatedSort(page, size, sort)
         .then((response) => {
                 dispatch({
                     type: GET_IMAGES_PAGINATED_SUCCESS,
-                    payload: { images: response.data, sort: "views"},
+                    payload: { images: response.data, sort: sort, search: "", page: page },
                 });
 
                 return Promise.resolve();
@@ -133,30 +133,13 @@ export const getAllPaginatedSortByViews = (page, size) => (dispatch) => {
         );
 };
 
-export const getAllPaginatedSortByLikes = (page, size) => (dispatch) => {
-    return ImagesService.getAllPaginated(page, size)
-        .then((response) => {
-                dispatch({
-                    type: GET_IMAGES_PAGINATED_SUCCESS,
-                    payload: { images: response.data, sort: "likes" },
-                });
-
-                return Promise.resolve();
-            },
-            (error) => {
-                sendErrorMessage(error, dispatch);
-                return Promise.reject();
-            }
-        );
-};
-
-export const getAllForUser = (userId, page, size) => (dispatch) => {
+export const getAllForUser = (userId, page, size, sort) => (dispatch) => {
     return ImagesService.getAllForUser(userId, page, size)
         .then((response) => {
                 console.log(response)
                 dispatch({
-                    type: GET_IMAGES_SUCCESS,
-                    payload: { images: response.data },
+                    type: GET_IMAGES_PAGINATED_SUCCESS,
+                    payload: { images: response.data, sort: sort, search: userId },
                 });
 
                 return Promise.resolve();
@@ -168,13 +151,12 @@ export const getAllForUser = (userId, page, size) => (dispatch) => {
         );
 };
 
-export const getAllByTitle = (title, page, size) => (dispatch) => {
-    return ImagesService.getAllByTitle(title, page, size)
+export const getAllByTitle = (title, page, size, sort) => (dispatch) => {
+    return ImagesService.getAllByTitle(title, page, size, sort)
         .then((response) => {
-                console.log(response)
                 dispatch({
-                    type: GET_IMAGES_SUCCESS,
-                    payload: { images: response.data },
+                    type: GET_IMAGES_PAGINATED_SUCCESS,
+                    payload: { images: response.data, sort: sort, search: title, page: page },
                 });
 
                 return Promise.resolve();

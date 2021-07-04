@@ -12,10 +12,8 @@ import {
 
 const initialState = {
     images: [],
-    page: 1,
-    size: 20,
     allLoaded: false,
-    loading: false,
+    search: "",
     sort: "newest"
 }
 
@@ -45,17 +43,17 @@ export default function (state = initialState, action) {
             return {
                 ...state,
                 images: payload.images,
-                page: 1,
-                size: 20,
                 allLoaded: true
             };
         case GET_IMAGES_PAGINATED_SUCCESS:
             return {
                 ...state,
-                images: (state.sort === payload.sort?[...state.images , ...payload.images] : payload.images),
-                page: (state.sort === payload.sort?state.page + 1 : 2),
+                //check if sorting parameter was changed or search was changed
+                images: (state.sort === payload.sort && state.search === payload.search && payload.page!==1?
+                    [...state.images , ...payload.images] : payload.images),
                 allLoaded: (payload.images.length < 20 || state.images.length + payload.images.length >= 240),
-                sort: payload.sort
+                sort: payload.sort,
+                search: payload.search
             };
         case LIKE_SUCCESS:
             return {

@@ -154,23 +154,94 @@ route.get('/paginated/:page/:size', [authJwt.deserializeUser],   (req, res) => {
 });
 
 /**
- * used to search all images by their titles
- * pass title parameter to match the titles
- * pass page and size parameters for pagination
- *
- * returns rows matching the given parameters
+ * Returns all images paginated using the page and size query params
+ * The sort parameter can be views, newest or likes
  */
-route.get('/getAllByTitle/:title/:page/:size', [authJwt.deserializeUser],  (req, res) => {
-    let title = req.params.title;
+route.get('/paginated/:page/:size/:sort', [authJwt.deserializeUser],   (req, res) => {
     let size = req.params.size;
     let start = (req.params.page - 1) * size;
-    let query = 'select * from images where title like %?% order by time limit start, size';
-    let formatted = mysql.format(query, [title, start, size]);
+    let sort = req.params.sort;
+    let query = '';
+    let formatted = '';
+    if(sort === 'likes'){
+        query = 'SELECT *, COUNT(case when is_like=1 then 1 else NULL end) AS like_count, COUNT(case when is_like=0 then 1 else NULL end) as dislike_count '+
+            'FROM images LEFT JOIN `like` ON images.id = like.image_id GROUP BY images.id ORDER BY like_count - dislike_count desc, time desc limit ?,?';
+        formatted = mysql.format(query, [start, parseInt(size)]);
+    }else if (sort === 'views'){
+        query = 'select * from images order by views desc limit ?,?';
+        formatted = mysql.format(query, [start, parseInt(size)]);
+    }else if (sort === 'newest'){
+        query = 'select * from images order by time desc limit ?,?';
+        formatted = mysql.format(query, [start, parseInt(size)]);
+    }else{
+        query = 'select * from images limit ?,?';
+        formatted = mysql.format(query, [start, parseInt(size)]);
+    }
     pool.query(formatted, async (err, rows) => {
         if (err)
             res.status(500).send(err.sqlMessage);
         else {
-            pool.query('select')
+            for (const row of rows) {
+                row.path = cloudinary.url(row.path);
+                await getUser(row.owner_id).then( response => {
+                    row.user = response;
+                }).catch( err => {
+                    return res.status(400).send(err.message)
+                });
+                if(req.user) {
+                    await isFavorite(req.user.user_id, row.id).then(response => {
+                        row.isFavorite = response;
+                    }).catch(err => {
+                        return res.status(400).send(err.message);
+                    })
+                    await isLike(req.user.user_id, row.id).then(response => {
+                        row.isLike = response;
+                    }).catch(err => {
+                        return res.status(400).send(err.message);
+                    })
+                }else{
+                    row.isFavorite = false;
+                    row.isLike = null;
+                }
+            }
+            res.send(rows);
+        }
+    });
+});
+
+/**
+ * used to search all images by their titles
+ * pass title parameter to match the titles
+ * pass page and size parameters for pagination
+ * sort param can be views, likes or newest
+ *
+ * returns rows matching the given parameters
+ */
+route.get('/getAllByTitle/:title/:page/:size/:sort', [authJwt.deserializeUser],  (req, res) => {
+    let title = req.params.title;
+    let size = req.params.size;
+    let start = (req.params.page - 1) * size;
+    let sort = req.params.sort;
+    let query = '';
+    let formatted = '';
+    if(sort === 'likes'){
+        query = 'SELECT *, COUNT(case when is_like=1 then 1 else NULL end) AS like_count '+
+            'FROM images LEFT JOIN `like` ON images.id = like.image_id WHERE title like ? GROUP BY images.id ORDER BY like_count desc limit ?,?';
+        formatted = mysql.format(query, ['%' + title + '%', start, parseInt(size)]);
+    }else if (sort === 'views'){
+        query = 'select * from images where title like ? order by views desc limit ?,?';
+        formatted = mysql.format(query, ['%' + title + '%', start, parseInt(size)]);
+    }else if (sort === 'newest'){
+        query = 'select * from images where title like ? order by time desc limit ?,?';
+        formatted = mysql.format(query, ['%' + title + '%', start, parseInt(size)]);
+    }else{
+        query = 'select * from images where title like ? limit ?,?';
+        formatted = mysql.format(query, ['%' + title + '%', start, parseInt(size)]);
+    }
+    pool.query(formatted, async (err, rows) => {
+        if (err)
+            res.status(500).send(err.sqlMessage);
+        else {
             for (const row of rows) {
                 row.path = cloudinary.url(row.path);
                 await getUser(row.owner_id).then( response => {

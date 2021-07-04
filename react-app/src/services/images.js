@@ -13,8 +13,12 @@ const getAllPaginated = (page, size) => {
     return axios.get(API_URL + "images/paginated/" + page + "/" + size, {headers: authHeader()});
 };
 
-const getAllByTitle = (title, page, size) => {
-    return axios.get(API_URL + "images/getAllByTitle/" + title + "/" + page + "/" + size, {headers: authHeader()});
+const getAllPaginatedSort = (page, size, sort) => {
+    return axios.get(API_URL + "images/paginated/" + page + "/" + size + "/" + sort, {headers: authHeader()});
+};
+
+const getAllByTitle = (title, page, size, sort) => {
+    return axios.get(API_URL + "images/getAllByTitle/" + title + "/" + page + "/" + size + "/" + sort, {headers: authHeader()});
 };
 
 const getAllForUser = (id, page, size) => {
@@ -79,6 +83,7 @@ const images = {
     getAllForUser,
     getAllByTitle,
     getAllPaginated,
+    getAllPaginatedSort,
     addImage,
     editImage,
     updateImage,
