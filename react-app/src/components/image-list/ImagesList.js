@@ -11,6 +11,7 @@ import NativeSelect from '@material-ui/core/NativeSelect';
 import FormControl from "@material-ui/core/FormControl";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import FormHelperText from "@material-ui/core/FormHelperText";
+import queryString from 'query-string'
 
 const useStyles = makeStyles((theme) => ({
     formControl: {
@@ -22,16 +23,15 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-const ImagesList = () => {
+const ImagesList = (props) => {
     const { images: images, allLoaded: allLoaded, sort: sortType, search: search} = useSelector((state) => state.images);
-    const [state, setState] = useState({sort: "newest", page: 1});
+    const [state, setState] = useState({sort: sortType, page: 1});
     const size = 20;
     const dispatch = useDispatch();
 
     const getAllImages = () => {
         let pageNum = state.page;
         if(state.sort !== sortType){
-            setState({sort: state.sort, page: 1});
             pageNum = 1;
         }
         setState({sort: state.sort, page: pageNum + 1})
@@ -42,9 +42,28 @@ const ImagesList = () => {
 
     }
 
+    const loadImages = () => {
+        let search = queryString.parse(props.location.search);
+        if(!search.input){
+            dispatch(getAllPaginatedSort(state.page, size, sortType));
+        }else {
+            if (search.input.length === 0) {
+                dispatch(getAllPaginatedSort(state.page, size, sortType));
+            } else {
+                if (search.input.startsWith("@")) {
+                    console.log(search.input + "starts with @");
+                    //todo search by username return all images uploaded by that user
+                } else {
+                    dispatch(getAllByTitle(search.input, state.page, size, sortType));
+                }
+            }
+        }
+    }
+
     useEffect(() => {
-        dispatch(getAllPaginatedSort(state.page, size, state.sort));
-    }, [dispatch]);
+        loadImages()
+    }, [props.location.search]);
+    //whenever url changes run useEffect
 
     const breakpointColumnsObj = {
         default: 5,

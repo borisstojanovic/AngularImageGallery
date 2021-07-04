@@ -58,6 +58,7 @@ const Register = () => {
     const [password2, setPassword2] = useState("");
     const [image, setImage] = useState("");
     const [successful, setSuccessful] = useState(false);
+    const [imageError, setImageError] = useState("");
 
     const { message } = useSelector(state => state.message);
     const dispatch = useDispatch();
@@ -81,19 +82,37 @@ const Register = () => {
         const password2 = e.target.value;
         setPassword2(password2);
     };
-
+    const reader = new FileReader();
     const onChangeImage = (e) => {
         e.stopPropagation();
         e.preventDefault();
         const image = e.target.files[0];
-        if(image){
-            const imgDisplay = document.getElementById("imgDisplay");
-            if(imgDisplay){
-                imgDisplay.src = URL.createObjectURL(image);
-            }
-            setImage(image);
+        if (!image) {
+            setImageError('Please select an image.');
+            return false;
         }
 
+        if (!image.name.match(/\.(jpg|jpeg|png|gif)$/)) {
+            setImageError('Please select a valid image.');
+            return false;
+        }
+
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                setImage(image);
+                const imgDisplay = document.getElementById("imgDisplay");
+                if(imgDisplay){
+                    imgDisplay.src = URL.createObjectURL(image);
+                }
+            };
+            img.onerror = () => {
+                setImageError('Invalid image content.');
+                return false;
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(image);
     };
 
     const imageClick = () => {
@@ -121,7 +140,7 @@ const Register = () => {
         }
     };
     return (
-        <div className="col-md-12">
+        <div style={{justifyContent: "center"}}>
             <div className="card card-container">
                 <input id="imageInput"
                        accept="image/*"

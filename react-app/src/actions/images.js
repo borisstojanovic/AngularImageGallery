@@ -99,24 +99,8 @@ export const getAll = () => (dispatch) => {
         );
 };
 
-export const getAllPaginated = (page, size) => (dispatch) => {
-    return ImagesService.getAllPaginated(page, size)
-        .then((response) => {
-                dispatch({
-                    type: GET_IMAGES_PAGINATED_SUCCESS,
-                    payload: { images: response.data, sort: "", search: ""},
-                });
-
-                return Promise.resolve();
-            },
-            (error) => {
-                sendErrorMessage(error, dispatch);
-                return Promise.reject();
-            }
-        );
-};
-
 export const getAllPaginatedSort = (page, size, sort) => (dispatch) => {
+    console.log(sort)
     return ImagesService.getAllPaginatedSort(page, size, sort)
         .then((response) => {
                 dispatch({
@@ -152,6 +136,7 @@ export const getAllForUser = (userId, page, size, sort) => (dispatch) => {
 };
 
 export const getAllByTitle = (title, page, size, sort) => (dispatch) => {
+    console.log(title)
     return ImagesService.getAllByTitle(title, page, size, sort)
         .then((response) => {
                 dispatch({

@@ -12,9 +12,8 @@ import InputBase from '@material-ui/core/InputBase';
 import MenuIcon from '@material-ui/icons/Menu';
 import SearchIcon from '@material-ui/icons/Search';
 import React, { useState, useEffect } from "react";
-import {Link as RouterLink, withRouter} from "react-router-dom";
+import {withRouter} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
-import {clearMessage} from "../actions/apiMessage";
 import {logout} from "../actions/auth";
 import PersonIcon from '@material-ui/icons/Person'; //profile
 import PowerSettingsNewIcon from '@material-ui/icons/PowerSettingsNew'; //logout
@@ -23,7 +22,7 @@ import ExitToAppIcon from '@material-ui/icons/ExitToApp'; //login
 import PostAddIcon from '@material-ui/icons/PostAdd'; //register
 import PhotoAlbumIcon from '@material-ui/icons/PhotoAlbum';
 import Tooltip from "@material-ui/core/Tooltip";
-import {getAllByTitle, getAllForUser, getAllPaginatedSort} from '../actions/images'
+import Form from "react-validation/build/form";
 //images
 
 const useStyles = makeStyles((theme) => ({
@@ -102,16 +101,8 @@ const useStyles = makeStyles((theme) => ({
 const Header = (props) => {
     const classes = useStyles();
     const { user: currentUser } = useSelector((state) => state.auth);
-    const { sort: currentSort, page: page } = useSelector((state) => state.images);
     const dispatch = useDispatch();
     const history = props.history;
-    const size = 20;
-
-    useEffect(() => {
-        history.listen((location) => {
-            dispatch(clearMessage()); // clear message when changing location
-        });
-    }, [dispatch]);
 
     const logOut = () => {
         dispatch(logout());
@@ -120,18 +111,10 @@ const Header = (props) => {
 
     const search = (e) => {
         e.preventDefault();
-        if(input.length === 0){
-            dispatch(getAllPaginatedSort( 1, size, currentSort));
-            return;
-        }
         setState({drawerOpen: false, mobileView: mobileView});
-        if(input.startsWith("@")){
-            console.log(input + "starts with @");
-            //todo search by username return all images uploaded by that user
-        }else{
-            dispatch(getAllByTitle(input, 1, size, currentSort));
-        }
-
+        history.push('/images/?input=' + input);
+        setInput("");
+        document.getElementById("standard-search").value = "";
     };
 
     const { logo, toolbar, drawerContainer } = useStyles();
@@ -187,8 +170,9 @@ const Header = (props) => {
                         <div className={classes.searchIcon}>
                             <SearchIcon />
                         </div>
-                        <form className="App" onSubmit={search}>
+                        <Form onSubmit={search}>
                             <InputBase
+                                id="standard-search"
                                 placeholder="Images or @users…"
                                 classes={{
                                     root: classes.inputRoot,
@@ -197,7 +181,7 @@ const Header = (props) => {
                                 inputProps={{ 'aria-label': 'search' }}
                                 onChange={onChangeInput}
                             />
-                        </form>
+                        </Form>
                     </div>
                 </div>
 
