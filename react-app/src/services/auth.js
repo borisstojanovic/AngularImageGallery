@@ -16,29 +16,12 @@ const register = (username, email, password, password2, image) => {
 };
 
 const login = (username, password) => {
-    return axios
-        .post(API_URL + "signin", {
-            username: username,
-            password: password,
-        })
-        .then((response) => {
-            if (response.data) {
-                localStorage.setItem("user", JSON.stringify(response.data));
-            }
-            return response.data;
-        }).catch(err => {
-            return err
-        });
-};
-
-const logout = () => {
-    localStorage.removeItem("user");
+    return axios.post(API_URL + "signin", { username: username, password: password })
 };
 
 const auth = {
     register,
-    login,
-    logout
+    login
 }
 
 export default auth;

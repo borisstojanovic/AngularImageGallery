@@ -98,7 +98,7 @@ const ImageItem = (props) => {
                     </IconButton>
                     <IconButton size={"small"} onClick={handleDownClick}>
                         {props.image.isLike === false && <ThumbDownAltIcon style={{color: "#AC3B61"}}/>}
-                        {(props.image.isLike === true || props.image.isLike === null) && <ThumbDownAltOutlinedIcon/>}
+                        {(props.image.isLike === true || props.image.isLike === undefined || props.image.isLike === null) && <ThumbDownAltOutlinedIcon/>}
                     </IconButton>
                     <IconButton size={"small"} onClick={handleFavoriteClick}>
                         {props.image.isFavorite && <GradeIcon style={{color: "#ffbe00"}}/>}

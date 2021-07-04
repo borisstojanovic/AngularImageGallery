@@ -8,7 +8,8 @@ import {
     LIKE_SUCCESS,
     DELETE_LIKE_SUCCESS,
     FAVORITE_SUCCESS,
-    DELETE_FAVORITE_SUCCESS
+    DELETE_FAVORITE_SUCCESS,
+    CHANGE_SORT
 } from "./type";
 
 import ImagesService from "../services/images";
@@ -29,6 +30,14 @@ const sendErrorMessage = (error, dispatch) =>{
         type: SET_MESSAGE,
         payload: message
     })
+}
+
+export const changeSort = (sort) => (dispatch) => {
+    dispatch({
+        type: CHANGE_SORT,
+        payload: sort
+    })
+    return Promise.resolve();
 }
 
 export const add = (userId, description, image) => (dispatch) => {
@@ -100,6 +109,7 @@ export const getAll = () => (dispatch) => {
 };
 
 export const getAllPaginatedSort = (page, size, sort) => (dispatch) => {
+    console.log(page)
     console.log(sort)
     return ImagesService.getAllPaginatedSort(page, size, sort)
         .then((response) => {
@@ -136,7 +146,6 @@ export const getAllForUser = (userId, page, size, sort) => (dispatch) => {
 };
 
 export const getAllByTitle = (title, page, size, sort) => (dispatch) => {
-    console.log(title)
     return ImagesService.getAllByTitle(title, page, size, sort)
         .then((response) => {
                 dispatch({

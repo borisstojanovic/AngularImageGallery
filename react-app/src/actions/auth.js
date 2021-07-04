@@ -47,10 +47,13 @@ export const register = (username, email, password, password2, image) => (dispat
 
 export const login = (username, password) => (dispatch) => {
     return AuthService.login(username, password).then(
-        (data) => {
+        (response) => {
+            if (response.data) {
+                localStorage.setItem("user", JSON.stringify(response.data));
+            }
             dispatch({
                 type: LOGIN_SUCCESS,
-                payload: { user: data },
+                payload: { user: response.data },
             });
 
             return Promise.resolve();
@@ -78,7 +81,6 @@ export const login = (username, password) => (dispatch) => {
 };
 
 export const logout = () => (dispatch) => {
-    AuthService.logout();
     localStorage.removeItem("user");
     dispatch({
         type: LOGOUT,

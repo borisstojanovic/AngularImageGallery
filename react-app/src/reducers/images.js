@@ -7,7 +7,8 @@ import {
     LIKE_SUCCESS,
     DELETE_LIKE_SUCCESS,
     FAVORITE_SUCCESS,
-    DELETE_FAVORITE_SUCCESS
+    DELETE_FAVORITE_SUCCESS,
+    CHANGE_SORT,
 } from "../actions/type";
 
 const initialState = {
@@ -54,6 +55,11 @@ export default function (state = initialState, action) {
                 allLoaded: (payload.images.length < 20 || state.images.length + payload.images.length >= 240),
                 sort: payload.sort,
                 search: payload.search
+            };
+        case CHANGE_SORT:
+            return {
+                ...state,
+                sort: payload
             };
         case LIKE_SUCCESS:
             return {

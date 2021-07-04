@@ -10,8 +10,9 @@ import {
 } from "@material-ui/core";
 import InputBase from '@material-ui/core/InputBase';
 import MenuIcon from '@material-ui/icons/Menu';
+import ClearIcon from "@material-ui/icons/Clear";
 import SearchIcon from '@material-ui/icons/Search';
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect, useRef} from "react";
 import {withRouter} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
 import {logout} from "../actions/auth";
@@ -23,7 +24,7 @@ import PostAddIcon from '@material-ui/icons/PostAdd'; //register
 import PhotoAlbumIcon from '@material-ui/icons/PhotoAlbum';
 import Tooltip from "@material-ui/core/Tooltip";
 import Form from "react-validation/build/form";
-//images
+import InputAdornment from "@material-ui/core/InputAdornment";
 
 const useStyles = makeStyles((theme) => ({
     logo: {
@@ -104,6 +105,8 @@ const Header = (props) => {
     const dispatch = useDispatch();
     const history = props.history;
 
+    const searchRef = useRef(null)
+
     const logOut = () => {
         dispatch(logout());
         history.push('/login');
@@ -114,7 +117,7 @@ const Header = (props) => {
         setState({drawerOpen: false, mobileView: mobileView});
         history.push('/images/?input=' + input);
         setInput("");
-        document.getElementById("standard-search").value = "";
+        searchRef.current.value = "";
     };
 
     const { logo, toolbar, drawerContainer } = useStyles();
@@ -148,6 +151,23 @@ const Header = (props) => {
         };
     }, []);
 
+    const clearSearch = () => {
+        setInput("");
+        searchRef.current.value = "";
+    }
+
+    const endAdornment = () => {
+        if(input.length > 0){
+            return (
+                <InputAdornment position="end">
+                    <IconButton onClick={() => {clearSearch()}}>
+                        <ClearIcon style={{ color: '#eee2dc' }} />
+                    </IconButton>
+                </InputAdornment>
+            )
+        }
+    }
+
     const displayDesktop = () => {
         return (
             <Toolbar className={toolbar}>
@@ -172,14 +192,16 @@ const Header = (props) => {
                         </div>
                         <Form onSubmit={search}>
                             <InputBase
-                                id="standard-search"
+                                inputRef={searchRef}
                                 placeholder="Images or @users…"
                                 classes={{
                                     root: classes.inputRoot,
                                     input: classes.inputInput,
                                 }}
                                 inputProps={{ 'aria-label': 'search' }}
+                                autoComplete="off"
                                 onChange={onChangeInput}
+                                endAdornment={endAdornment()}
                             />
                         </Form>
                     </div>
@@ -288,8 +310,9 @@ const Header = (props) => {
                                 <div className={classes.searchIcon}>
                                     <SearchIcon />
                                 </div>
-                                <form className="App" onSubmit={search}>
+                                <form onSubmit={search}>
                                     <InputBase
+                                        inputRef={searchRef}
                                         placeholder="Images or @users…"
                                         classes={{
                                             root: classes.inputRoot,
@@ -297,6 +320,7 @@ const Header = (props) => {
                                         }}
                                         inputProps={{ 'aria-label': 'search' }}
                                         onChange={onChangeInput}
+                                        endAdornment={endAdornment()}
                                     />
                                 </form>
                             </div>

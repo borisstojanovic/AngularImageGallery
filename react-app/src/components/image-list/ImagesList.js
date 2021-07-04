@@ -2,7 +2,9 @@ import React, {useEffect, useState} from "react";
 import { useDispatch, useSelector} from "react-redux";
 import InfiniteScroll from 'react-infinite-scroll-component';
 import {
-    getAllByTitle, getAllForUser,
+    changeSort,
+    getAllByTitle,
+    getAllForUser,
     getAllPaginatedSort,
 } from '../../actions/images'
 import Masonry from "react-masonry-css"
@@ -24,45 +26,32 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const ImagesList = (props) => {
-    const { images: images, allLoaded: allLoaded, sort: sortType, search: search} = useSelector((state) => state.images);
-    const [state, setState] = useState({sort: sortType, page: 1});
+    const {images, allLoaded, sort} = useSelector((state) => state.images);
+    const [page, setPage] = useState(1);
     const size = 20;
     const dispatch = useDispatch();
 
     const getAllImages = () => {
-        let pageNum = state.page;
-        if(state.sort !== sortType){
-            pageNum = 1;
-        }
-        setState({sort: state.sort, page: pageNum + 1})
-        if(search.length > 0)
-            dispatch(getAllByTitle(search, pageNum+1, size, state.sort));
-        else
-            dispatch(getAllPaginatedSort(pageNum+1, size, state.sort));
-
+        setPage(page+1);
     }
 
-    const loadImages = () => {
+    useEffect(() => {
         let search = queryString.parse(props.location.search);
         if(!search.input){
-            dispatch(getAllPaginatedSort(state.page, size, sortType));
+            dispatch(getAllPaginatedSort(page, size, sort));
         }else {
             if (search.input.length === 0) {
-                dispatch(getAllPaginatedSort(state.page, size, sortType));
+                dispatch(getAllPaginatedSort(page, size, sort));
             } else {
                 if (search.input.startsWith("@")) {
                     console.log(search.input + "starts with @");
                     //todo search by username return all images uploaded by that user
                 } else {
-                    dispatch(getAllByTitle(search.input, state.page, size, sortType));
+                    dispatch(getAllByTitle(search.input, page, size, sort));
                 }
             }
         }
-    }
-
-    useEffect(() => {
-        loadImages()
-    }, [props.location.search]);
+    }, [props.location.search, dispatch, sort, page]);
     //whenever url changes run useEffect
 
     const breakpointColumnsObj = {
@@ -77,23 +66,15 @@ const ImagesList = (props) => {
 
     const handleChange = (event) => {
         const value = event.target.value;
-        setState({sort: value, page: 1});
-        if(search.length !== 0){
-            if(search.startsWith('@')){
-                dispatch(getAllForUser(search, 1, size, value));
-            }else{
-                dispatch(getAllByTitle(search, 1, size, value));
-            }
-        }else{
-            dispatch(getAllPaginatedSort(1, size, value));
-        }
+        setPage(1);
+        dispatch(changeSort(value));
     };
 
     return (
         <div>
             <FormControl>
                 <NativeSelect
-                    value={state.sort}
+                    value={sort}
                     onChange={handleChange}
                     name="sort"
                     className={classes.selectEmpty}

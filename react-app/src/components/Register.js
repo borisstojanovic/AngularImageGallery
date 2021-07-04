@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, {useState, useRef, useEffect} from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import Form from "react-validation/build/form";
@@ -7,6 +7,7 @@ import CheckButton from "react-validation/build/button";
 import { isEmail } from "validator";
 
 import { register } from "../actions/auth";
+import {clearMessage} from "../actions/apiMessage";
 
 const required = (value) => {
     if (!value) {
@@ -48,7 +49,7 @@ const vpassword = (value) => {
     }
 };
 
-const Register = () => {
+const Register = ({history}) => {
     const form = useRef();
     const checkBtn = useRef();
 
@@ -62,6 +63,10 @@ const Register = () => {
 
     const { message } = useSelector(state => state.message);
     const dispatch = useDispatch();
+
+    useEffect(() => {
+        dispatch(clearMessage())
+    }, [history.location, dispatch])
 
     const onChangeUsername = (e) => {
         const username = e.target.value;

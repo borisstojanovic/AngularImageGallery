@@ -1,7 +1,7 @@
-import React from "react";
-import {Provider} from "react-redux";
+import React, {useEffect} from "react";
+import {Provider, useDispatch} from "react-redux";
 import { Router } from "react-router"
-import { Switch, Route, Link } from "react-router-dom";
+import { Switch, Route } from "react-router-dom";
 
 import "./App.css";
 
@@ -17,6 +17,8 @@ import store from "./helpers/store";
 
 import { makeStyles } from '@material-ui/core';
 
+import {clearMessage} from "./actions/apiMessage";
+
 const useStyles = makeStyles((theme) => ({
     toolbar: theme.mixins.toolbar,
 }));
@@ -24,18 +26,8 @@ const useStyles = makeStyles((theme) => ({
 const App = () => {
     const classes = useStyles();
   return (
-//blue-snow.png 8/10
-      //circle-blues.png 3/10
-      //cork-board.png 4/10
-      //denim.png 8.2/10
-      //denim_@2X.png 7/10
-      //dot-grid.png 8/10
-      //fff4eb background with ep_naturalwhite.png 8/10
-      //halftone-yellow.png 7.5/10
       <Provider store={store}>
-          <div className="root" style={{
-            backgroundRepeat: "repeat"
-          }}>
+          <div className="root">
               <Router history={history}>
                   <Header/>
 
