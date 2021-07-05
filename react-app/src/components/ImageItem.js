@@ -95,10 +95,15 @@ const ImageItem = (props) => {
                     <IconButton size={"small"} onClick={handleUpClick}>
                         {props.image.isLike === true && <ThumbUpAltIcon style={{color: "darkgreen"}}/>}
                         {!props.image.isLike && <ThumbUpAltOutlinedIcon/>}
+                        {props.image.isLike === true && <small style={{color: "darkgreen", fontSize: "10pt", marginLeft: "2px", marginTop: "5px"}}>{props.image.likes}</small>}
+                        {!props.image.isLike && <small style={{fontSize: "10pt", marginLeft: "2px", marginTop: "5px"}}>{props.image.likes}</small>}
                     </IconButton>
                     <IconButton size={"small"} onClick={handleDownClick}>
                         {props.image.isLike === false && <ThumbDownAltIcon style={{color: "#AC3B61"}}/>}
                         {(props.image.isLike === true || props.image.isLike === undefined || props.image.isLike === null) && <ThumbDownAltOutlinedIcon/>}
+                        {props.image.isLike === false && <small style={{color: "#AC3B61", fontSize: "10pt", marginLeft: "4px", marginTop: "5px"}}>{props.image.dislikes}</small>}
+                        {(props.image.isLike === true || props.image.isLike === undefined || props.image.isLike === null) &&
+                        <small style={{fontSize: "10pt", marginLeft: "4px", marginTop: "5px"}}>{props.image.dislikes}</small>}
                     </IconButton>
                     <IconButton size={"small"} onClick={handleFavoriteClick}>
                         {props.image.isFavorite && <GradeIcon style={{color: "#ffbe00"}}/>}

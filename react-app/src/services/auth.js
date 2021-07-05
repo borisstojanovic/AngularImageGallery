@@ -14,6 +14,8 @@ const register = (username, email, password, password2, image) => {
         formData.append("image", image);
     }
 
+    console.log(formData)
+
     return axios.post(API_URL + "register", formData, {headers: authMultipartHeader()});
 };
 

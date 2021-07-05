@@ -64,57 +64,63 @@ const removefile = function(path){
 
 route.post("/register", images.single('image'), (req, res) => {
     let {error} = Joi.validate(req.body, schemeRegister);
-
     if (error) {
         return res.status(400).json(error.details[0].message);
-    }
-    const {username, password, password2} = req.body;
+    }else{
+        const {username, password, password2} = req.body;
 
-    if(password !== password2){
-        return res.status(400).json({message: "Passwords do not match!"});
-    }
+        if(password !== password2){
+            return res.status(400).json({message: "Passwords do not match!"});
+        }else{
+            let query = "select * from user where username=? or email=?";
+            let formated = mysql.format(query, [username, req.body.email]);
 
-    let query = "select * from user where username=? or email=?";
-    let formated = mysql.format(query, [username, req.body.email]);
+            pool.query(formated, (err, rows) => {
+                if (err)
+                    return res.status(500).send("Server failure!");
+                else {
+                    if(rows[0] !== undefined) {
+                        if(rows[0].email === req.body.email){
+                            return res.status(400).send({message: "Email already in use!"});
+                        }else{
+                            return res.status(400).send({message: "Username already in use!"});
+                        }
+                    }else{
+                        let query2 = "insert into user (username, password, email, path) values (?, ?, ?, ?)";
+                        bcrypt.hash(password, saltRounds, async (err, hash) => {
+                            if(err) return res.status(500).send(err)
 
-    pool.query(formated, (err, rows) => {
-        if (err)
-            return res.status(500).send("Server failure!");
-        else {
-            if(rows[0] !== undefined) {
-                if(rows[0].email === req.body.email){
-                    return res.status(400).send({message: "Email already in use!"});
-                }else{
-                    return res.status(400).send({message: "Username already in use!"});
-                }
-            }else{
-                let query2 = "insert into user (username, password, email, path) values (?, ?, ?, ?)";
-                bcrypt.hash(password, saltRounds, async (err, hash) => {
-                    if(err) return res.status(500).send(err)
-
-                    let path = "";
-                    if(req.file !== undefined){
-                        path = req.file.path;
-                        let uploadedResponse = null
-                        await cloudinary.uploader.upload(path).then(response => {
-                            uploadedResponse = response;
-                            removefile(path); //posto je snimljen na cdn brisem ga iz fs-a
-                            path = uploadedResponse.public_id; //postavljam path na URL koji vraca upload
-                            let formatted2 = mysql.format(query2, [username, hash, req.body.email, path]);
-                            pool.query(formatted2, (err, response) => {
-                                if(err) res.status(500).send(err);
-                                else res.status(200).send(response[0]);
-                            })
-                        }).catch( error => {
-                            removefile(path);
-                            return res.status(400).send(error);
+                            let path = "";
+                            if(req.file !== undefined){
+                                path = req.file.path;
+                                let uploadedResponse = null
+                                await cloudinary.uploader.upload(path).then(response => {
+                                    uploadedResponse = response;
+                                    removefile(path); //posto je snimljen na cdn brisem ga iz fs-a
+                                    path = uploadedResponse.public_id; //postavljam path na URL koji vraca upload
+                                    let formatted2 = mysql.format(query2, [username, hash, req.body.email, path]);
+                                    pool.query(formatted2, (err, response) => {
+                                        if(err) res.status(500).send(err);
+                                        else res.status(200).send(response);
+                                    })
+                                }).catch( error => {
+                                    removefile(path);
+                                    return res.status(400).send(error);
+                                })
+                            }else{
+                                let formatted2 = mysql.format(query2, [username, hash, req.body.email, path]);
+                                pool.query(formatted2, (err, response) => {
+                                    if(err) res.status(500).send(err);
+                                    else res.status(200).send(response);
+                                })
+                            }
                         })
-
                     }
-                })
-            }
+                }
+            });
         }
-    });
+    }
+
 
 });
 

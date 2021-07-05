@@ -155,8 +155,8 @@ const Register = ({history}) => {
         e.preventDefault();
 
         setLoading(true);
-
         if (validate()) {
+            console.log(username.value)
             dispatch(register(username.value, email.value, password.value, password2.value, image))
                 .then(() => {
                     setLoading(false);
@@ -207,7 +207,7 @@ const Register = ({history}) => {
     const login = () => {
         history.push('/login');
     }
-
+//src="//ssl.gstatic.com/accounts/ui/avatar_2x.png" profile pic
     return (
         <Container maxWidth="xs">
             <CssBaseline />
@@ -223,7 +223,7 @@ const Register = ({history}) => {
                  <img
                      id="imgDisplay"
                      ref={imageRef}
-                     src="//ssl.gstatic.com/accounts/ui/avatar_2x.png"
+                     src="betterCroppedImage.jpg"
                      alt="Profile Image"
                      className="profile-img-card"
                      onClick={imageClick}

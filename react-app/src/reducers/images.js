@@ -1,8 +1,5 @@
 import {
-    ADD_IMAGE_SUCCESS,
-    EDIT_IMAGE_SUCCESS,
     GET_IMAGES_PAGINATED_SUCCESS,
-    DELETE_IMAGE_SUCCESS,
     GET_IMAGES_SUCCESS,
     LIKE_SUCCESS,
     DELETE_LIKE_SUCCESS,
@@ -22,24 +19,6 @@ export default function (state = initialState, action) {
     const { type, payload } = action;
 
     switch (type) {
-        case ADD_IMAGE_SUCCESS:
-            return {
-                ...state,
-                images: [...state.images, payload.image]
-            };
-        case EDIT_IMAGE_SUCCESS:
-            return {
-                ...state,
-                images: [
-                    ...state.images.filter(image => image.id !== payload.image.id),
-                    payload.image,
-                ]
-            };
-        case DELETE_IMAGE_SUCCESS:
-            return {
-                ...state,
-                images: state.images.filter(image => image.id !== payload.image.id),
-            };
         case GET_IMAGES_SUCCESS:
             return {
                 ...state,
@@ -65,7 +44,20 @@ export default function (state = initialState, action) {
             return {
                 ...state,
                 images: state.images.map(image => {
-                    if(image.id === payload.image_id) image.isLike = payload.is_like === 1;
+                    if(image.id === payload.image_id) {
+                        //check if image was liked or disliked by the user previously
+                        if(image.isLike){
+                            image.likes -= 1;
+                        }else if(image.isLike === false){
+                            image.dislikes -= 1;
+                        }
+                        image.isLike = payload.is_like === 1;
+                        if(image.isLike){
+                            image.likes += 1;
+                        }else{
+                            image.dislikes += 1;
+                        }
+                    }
                     return image;
                 })
             };
@@ -73,7 +65,14 @@ export default function (state = initialState, action) {
             return {
                 ...state,
                 images: state.images.map(image => {
-                    if(image.id === payload.image_id) image.isLike = null;
+                    if(image.id === payload.image_id) {
+                        if(image.isLike){
+                            image.likes-=1;
+                        }else{
+                            image.dislikes-=1;
+                        }
+                        image.isLike = null;
+                    }
                     return image;
                 })
             };
