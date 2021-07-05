@@ -21,8 +21,8 @@ const getAllByTitle = (title, page, size, sort) => {
     return axios.get(API_URL + "images/getAllByTitle/" + title + "/" + page + "/" + size + "/" + sort, {headers: authHeader()});
 };
 
-const getAllForUser = (id, page, size) => {
-    return axios.get(API_URL + "images/getAllForUser/" + id + "/" + page + "/" + size, {headers: authHeader()});
+const getAllForUser = (username, page, size, sort) => {
+    return axios.get(API_URL + "images/getAllForUser/" + username + "/" + page + "/" + size + "/" + sort, {headers: authHeader()});
 };
 
 const deleteImage = (id) => {

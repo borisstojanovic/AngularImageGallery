@@ -105,7 +105,8 @@ const Header = (props) => {
     const dispatch = useDispatch();
     const history = props.history;
 
-    const searchRef = useRef(null)
+    const searchRef = useRef(null);
+    const mobileSearchRef = useRef(null);
 
     const logOut = () => {
         dispatch(logout());
@@ -117,7 +118,12 @@ const Header = (props) => {
         setState({drawerOpen: false, mobileView: mobileView});
         history.push('/images/?input=' + input);
         setInput("");
-        searchRef.current.value = "";
+        if(searchRef.current){
+            searchRef.current.value = "";
+        }
+        if(mobileSearchRef.current){
+            mobileSearchRef.current.value = "";
+        }
     };
 
     const { logo, toolbar, drawerContainer } = useStyles();
@@ -310,19 +316,20 @@ const Header = (props) => {
                                 <div className={classes.searchIcon}>
                                     <SearchIcon />
                                 </div>
-                                <form onSubmit={search}>
+                                <Form onSubmit={search}>
                                     <InputBase
-                                        inputRef={searchRef}
+                                        inputRef={mobileSearchRef}
                                         placeholder="Images or @users…"
                                         classes={{
                                             root: classes.inputRoot,
                                             input: classes.inputInput,
                                         }}
                                         inputProps={{ 'aria-label': 'search' }}
+                                        autoComplete="off"
                                         onChange={onChangeInput}
                                         endAdornment={endAdornment()}
                                     />
-                                </form>
+                                </Form>
                             </div>
                         </MenuItem>
                         <MenuItem>

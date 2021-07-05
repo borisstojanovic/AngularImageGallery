@@ -127,13 +127,13 @@ export const getAllPaginatedSort = (page, size, sort) => (dispatch) => {
         );
 };
 
-export const getAllForUser = (userId, page, size, sort) => (dispatch) => {
-    return ImagesService.getAllForUser(userId, page, size)
+export const getAllForUser = (username, page, size, sort) => (dispatch) => {
+    return ImagesService.getAllForUser(username, page, size, sort)
         .then((response) => {
                 console.log(response)
                 dispatch({
                     type: GET_IMAGES_PAGINATED_SUCCESS,
-                    payload: { images: response.data, sort: sort, search: userId },
+                    payload: { images: response.data, sort: sort, search: username },
                 });
 
                 return Promise.resolve();

@@ -28,6 +28,7 @@ const useStyles = makeStyles((theme) => ({
 const ImagesList = (props) => {
     const {images, allLoaded, sort} = useSelector((state) => state.images);
     const [page, setPage] = useState(1);
+    const [search, setSearch] = useState("")
     const size = 20;
     const dispatch = useDispatch();
 
@@ -36,22 +37,31 @@ const ImagesList = (props) => {
     }
 
     useEffect(() => {
-        let search = queryString.parse(props.location.search);
-        if(!search.input){
+        let values = queryString.parse(props.location.search);
+        if(!values.input){
             dispatch(getAllPaginatedSort(page, size, sort));
         }else {
-            if (search.input.length === 0) {
+            if (values.input.length === 0) {
                 dispatch(getAllPaginatedSort(page, size, sort));
             } else {
-                if (search.input.startsWith("@")) {
-                    console.log(search.input + "starts with @");
-                    //todo search by username return all images uploaded by that user
+                let pageNum = page;
+                //in case they arent equal only change the state
+                //this will trigger the same useEffect again but with the updated state
+                if(values.input !== search){
+                    setPage(1);
+                    setSearch(values.input);
+                    pageNum = 1;
+                    return;
+                }
+
+                if (values.input.startsWith("@")) {
+                    dispatch(getAllForUser(values.input.substring(1), pageNum, size, sort));
                 } else {
-                    dispatch(getAllByTitle(search.input, page, size, sort));
+                    dispatch(getAllByTitle(values.input, pageNum, size, sort));
                 }
             }
         }
-    }, [props.location.search, dispatch, sort, page]);
+    }, [props.location.search, dispatch, sort, page, search]);
     //whenever url changes run useEffect
 
     const breakpointColumnsObj = {

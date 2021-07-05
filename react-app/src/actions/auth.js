@@ -15,15 +15,11 @@ export const register = (username, email, password, password2, image) => (dispat
             dispatch({
                 type: REGISTER_SUCCESS,
             });
-
-            dispatch({
-                type: SET_MESSAGE,
-                payload: response.data.message,
-            });
-
+            console.log(response)
             return Promise.resolve();
         },
         (error) => {
+            console.log(error.message)
             const message =
                 (error.response &&
                     error.response.data &&

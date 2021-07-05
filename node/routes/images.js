@@ -74,7 +74,10 @@ function getUser(id) {
 }
 
 route.get('/all', [authJwt.deserializeUser],  (req, res) => {
-     pool.query('select * from images', async (err, rows) => {
+    let query = "select images.*, count(case when like.is_like=1 then 1 else NULL end) as likes,\n" +
+        "count(case when like.is_like=0 then 1 else NULL end) as dislikes from images left join `like` on\n" +
+        "images.id = like.image_id group by images.id";
+    pool.query(query, async (err, rows) => {
         if (err)
             res.status(500).send(err.sqlMessage);
         else {
@@ -100,7 +103,7 @@ route.get('/all', [authJwt.deserializeUser],  (req, res) => {
             }
             res.send(rows);
         }
-    });
+     });
 });
 
 route.get('/count', (req, res) => {
@@ -119,7 +122,9 @@ route.get('/count', (req, res) => {
 route.get('/paginated/:page/:size', [authJwt.deserializeUser],   (req, res) => {
     let size = req.params.size;
     let start = (req.params.page - 1) * size;
-    let query = 'select * from images order by time limit ?,? ';
+    let query = "select images.*, count(case when like.is_like=1 then 1 else NULL end) as likes,\n" +
+        "count(case when like.is_like=0 then 1 else NULL end) as dislikes from images left join `like` on\n" +
+        "images.id = like.image_id group by images.id order by time limit ?,?";
     let formatted = mysql.format(query, [start, parseInt(size)]);
     pool.query(formatted, async (err, rows) => {
         if (err)
@@ -164,19 +169,22 @@ route.get('/paginated/:page/:size/:sort', [authJwt.deserializeUser],   (req, res
     let query = '';
     let formatted = '';
     if(sort === 'likes'){
-        query = 'SELECT *, COUNT(case when is_like=1 then 1 else NULL end) AS like_count, COUNT(case when is_like=0 then 1 else NULL end) as dislike_count '+
-            'FROM images LEFT JOIN `like` ON images.id = like.image_id GROUP BY images.id ORDER BY like_count - dislike_count desc, time desc limit ?,?';
-        formatted = mysql.format(query, [start, parseInt(size)]);
+        query = 'SELECT images.*, COUNT(case when is_like=1 then 1 else NULL end) AS likes, COUNT(case when is_like=0 then 1 else NULL end) as dislikes '+
+            'FROM images LEFT JOIN `like` ON images.id = like.image_id GROUP BY images.id ORDER BY likes - dislikes desc, time desc limit ?,?';
     }else if (sort === 'views'){
-        query = 'select * from images order by views desc limit ?,?';
-        formatted = mysql.format(query, [start, parseInt(size)]);
+        query = "select images.*, count(case when like.is_like=1 then 1 else NULL end) as likes,\n" +
+            "count(case when like.is_like=0 then 1 else NULL end) as dislikes from images left join `like` on\n" +
+            "images.id = like.image_id group by images.id order by views desc, time desc limit ?,?";
     }else if (sort === 'newest'){
-        query = 'select * from images order by time desc limit ?,?';
-        formatted = mysql.format(query, [start, parseInt(size)]);
+        query = "select images.*, count(case when like.is_like=1 then 1 else NULL end) as likes,\n" +
+            "count(case when like.is_like=0 then 1 else NULL end) as dislikes from images left join `like` on\n" +
+            "images.id = like.image_id group by images.id order by time desc, views desc limit ?,?";
     }else{
-        query = 'select * from images limit ?,?';
-        formatted = mysql.format(query, [start, parseInt(size)]);
+        query = "select images.*, count(case when like.is_like=1 then 1 else NULL end) as likes,\n" +
+            "count(case when like.is_like=0 then 1 else NULL end) as dislikes from images left join `like` on\n" +
+            "images.id = like.image_id group by images.id limit ?,?";
     }
+    formatted = mysql.format(query, [start, parseInt(size)]);
     pool.query(formatted, async (err, rows) => {
         if (err)
             res.status(500).send(err.sqlMessage);
@@ -225,19 +233,22 @@ route.get('/getAllByTitle/:title/:page/:size/:sort', [authJwt.deserializeUser], 
     let query = '';
     let formatted = '';
     if(sort === 'likes'){
-        query = 'SELECT *, COUNT(case when is_like=1 then 1 else NULL end) AS like_count '+
-            'FROM images LEFT JOIN `like` ON images.id = like.image_id WHERE title like ? GROUP BY images.id ORDER BY like_count desc limit ?,?';
-        formatted = mysql.format(query, ['%' + title + '%', start, parseInt(size)]);
+        query = 'SELECT images.*, COUNT(case when is_like=1 then 1 else NULL end) AS likes, COUNT(case when is_like=0 then 1 else NULL end) AS dislikes '+
+            'FROM images LEFT JOIN `like` ON images.id = like.image_id WHERE title like ? GROUP BY images.id ORDER BY likes-dislikes desc, time desc limit ?,?';
     }else if (sort === 'views'){
-        query = 'select * from images where title like ? order by views desc limit ?,?';
-        formatted = mysql.format(query, ['%' + title + '%', start, parseInt(size)]);
+        query = "select images.*, count(case when like.is_like=1 then 1 else NULL end) as likes,\n" +
+            "count(case when like.is_like=0 then 1 else NULL end) as dislikes from images left join `like` on\n" +
+            "images.id = like.image_id where title like ? group by images.id order by views desc, time desc limit ?,?";
     }else if (sort === 'newest'){
-        query = 'select * from images where title like ? order by time desc limit ?,?';
-        formatted = mysql.format(query, ['%' + title + '%', start, parseInt(size)]);
+        query = "select images.*, count(case when like.is_like=1 then 1 else NULL end) as likes,\n" +
+            "count(case when like.is_like=0 then 1 else NULL end) as dislikes from images left join `like` on\n" +
+            "images.id = like.image_id where title like ? group by images.id order by time desc, views desc limit ?,?";
     }else{
-        query = 'select * from images where title like ? limit ?,?';
-        formatted = mysql.format(query, ['%' + title + '%', start, parseInt(size)]);
+        query = "select images.*, count(case when like.is_like=1 then 1 else NULL end) as likes,\n" +
+            "count(case when like.is_like=0 then 1 else NULL end) as dislikes from images left join `like` on\n" +
+            "images.id = like.image_id where title like ? group by images.id limit ?,?";
     }
+    formatted = mysql.format(query, ['%' + title + '%', start, parseInt(size)]);
     pool.query(formatted, async (err, rows) => {
         if (err)
             res.status(500).send(err.sqlMessage);
@@ -268,15 +279,40 @@ route.get('/getAllByTitle/:title/:page/:size/:sort', [authJwt.deserializeUser], 
 });
 
 /**
- * used to search all images by their user id
+ * used to search all images by their owners username
  * pass title parameter to match the titles
  * pass page and size parameters for pagination
  *
  * returns rows matching the given parameters
  */
-route.get('/getAllForUser/:id/:page/:size', [authJwt.deserializeUser],   (req, res) => {
-    let query = 'select * from images where owner_id=?';
-    let formatted = mysql.format(query, [req.params.id]);
+route.get('/getAllForUser/:username/:page/:size/:sort', [authJwt.deserializeUser],   (req, res) => {
+    let username = req.params.username;
+    let size = req.params.size;
+    let start = (req.params.page - 1) * size;
+    let sort = req.params.sort;
+    let query = "";
+    if(sort === 'likes'){
+        query = "select images.*, count(case when like.is_like=1 then 1 else NULL end) as likes, \n" +
+            "count(case when like.is_like=0 then 1 else NULL end) as dislikes from images left join `like` on \n" +
+            "images.id = like.image_id left join user on images.owner_id = user.id \n" +
+            "where user.username = ? group by images.id order by likes - dislikes desc limit ?,?";
+    }else if(sort === 'views'){
+        query = "select images.*, count(case when like.is_like=1 then 1 else NULL end) as likes,\n" +
+            "count(case when like.is_like=0 then 1 else NULL end) as dislikes from images left join `like` on\n" +
+            "images.id = like.image_id left join user on images.owner_id = user.id\n" +
+            "where user.username = ? group by images.id order by views desc, time desc limit ?,?";
+    }else if(sort === 'newest'){
+        query = "select images.*, count(case when like.is_like=1 then 1 else NULL end) as likes,\n" +
+            "count(case when like.is_like=0 then 1 else NULL end) as dislikes from images left join `like` on\n" +
+            "images.id = like.image_id left join user on images.owner_id = user.id\n" +
+            "where user.username = ? group by images.id order by time desc, views desc limit ?,?";
+    }else{
+        query = "select images.*, count(case when like.is_like=1 then 1 else NULL end) as likes,\n" +
+            "count(case when like.is_like=0 then 1 else NULL end) as dislikes from images left join `like` on\n" +
+            "images.id = like.image_id left join user on images.owner_id = user.id\n" +
+            "where user.username = ? group by images.id limit ?,?";
+    }
+    let formatted = mysql.format(query, [username, start, parseInt(size)]);
     pool.query(formatted, async (err, rows) => {
         if (err)
             res.status(500).send(err.sqlMessage);

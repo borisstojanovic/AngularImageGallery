@@ -10,7 +10,9 @@ const register = (username, email, password, password2, image) => {
     formData.append("email", email);
     formData.append("password", password);
     formData.append("password2", password2);
-    formData.append("image", image);
+    if(image){
+        formData.append("image", image);
+    }
 
     return axios.post(API_URL + "register", formData, {headers: authMultipartHeader()});
 };
