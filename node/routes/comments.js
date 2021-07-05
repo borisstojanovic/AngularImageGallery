@@ -10,8 +10,8 @@ const { pool } = require('../utils/database');
 const route = express.Router();
 
 const scheme = Joi.object().keys({
-    user_id: Joi.number().required(),
     image_id: Joi.number().required(),
+    comment_id: Joi.number(),
     content: Joi.string().max(256).required(),
 });
 
@@ -25,19 +25,114 @@ route.get('/all',   (req, res) => {
     });
 });
 
-route.get('/image/:id',   (req, res) => {
-    let query = 'select * from comment where image_id=?';
-    let formatted = mysql.format(query, [req.params.id]);
+const getUser = (id) => {
+    let query = 'select * from user where id=?'
+    let formatted = mysql.format(query, id)
+    return new Promise((resolve, reject) => {
+        pool.query(formatted, (err, response) => {
+            if(err){
+                reject(err)
+            }else{
+                resolve(response[0])
+            }
+        })
+    })
+}
+
+const getChildren = (id) => {
+    let query = 'select * from comment where comment_id=?'
+    let formatted = mysql.format(query, id)
+    return new Promise((resolve, reject) => {
+        pool.query(formatted, (err, rows) => {
+            if(err){
+                reject(err);
+            }else{
+                resolve(rows);
+            }
+        })
+    })
+}
+
+/*
+route.get('/image/paginated/:id/:page/:size',   (req, res) => {
+    let size = req.params.size;
+    let start = (req.params.page - 1) * size;
+    let query = 'select * from comment where image_id=? order by date_created limit ?,?';
+    let formatted = mysql.format(query, [req.params.id, start, parseInt(size)]);
     pool.query(formatted, async (err, rows) => {
         if (err) {
             res.status(500).send(err.sqlMessage);
         }
         else {
-            res.send(rows);
+
+            //get user info for each comment
+            for(const row of rows){
+                await getUser(row.user_id)
+                    .then((user) => row.user = user)
+                    .catch((err) => {return res.status(500).send(err)});
+            }
+
+            //recursively check all parents
+            //add the child to children of comment with comment.id = child.comment_id
+            //recursion is possible because query retrieved comments sorted
+            //by time created so each comment must have a parent
+            let recursive = (child, parents) => {
+                for (let value in parents) {
+                    let parent = parents[value];
+                    if (parent.id === child.comment_id) {
+                        parent.children[child.id] = child;
+                        return;
+                    }
+
+                    if(parent.children){
+                        recursive(child, parent.children);
+                    }
+                }
+            }
+            let parents = {}, comment;
+            for (let i = 0; i < rows.length; i++) {
+                comment = rows[i];
+                comment.children = {};
+                let parentId = comment.comment_id;
+                //if the comment doesn't have a parent comment then it is a parent
+                if (!parentId) {
+                    parents[comment.id] = comment;
+                    continue;
+                }
+                recursive(comment, parents)
+            }
+            res.status(200).send(parents);
         }
     });
 });
 
+
+ */
+
+route.get('/image/paginated/:id/:page/:size',   (req, res) => {
+    let size = req.params.size;
+    let start = (req.params.page - 1) * size;
+    let query = 'select * from comment where image_id=? and comment_id is null order by date_created limit ?,?';
+    let formatted = mysql.format(query, [req.params.id, start, parseInt(size)]);
+    pool.query(formatted, async (err, rows) => {
+        if (err) {
+            res.status(500).send(err.sqlMessage);
+        }
+        else {
+            //get user info for each comment
+            //get all children for each parent comment
+            for(const row of rows){
+                await getUser(row.user_id)
+                    .then((user) => row.user = user)
+                    .catch((err) => {return res.status(500).send(err)});
+                await getChildren(row.id)
+                    .then((children) => row.children = children)
+                    .catch((err) => {return res.status(500).send(err)})
+            }
+            res.status(200).send(rows);
+        }
+    });
+});
 route.get('/user/:id', async (req, res) => {
 
     let query = 'select * from comment where user_id=?';
@@ -84,8 +179,6 @@ route.put('/edit/:id', [authJwt.verifyToken], (req, res) => {
                         res.status(400).send(new Error('Comment doesn\'t exist').nessage);
                     else {
                         if(req.user.user_id !== rows[0].user_id){
-                            console.log(rows[0].user_id)
-                            console.log(req.user.user_id)
                             res.status(401).send(new Error('Unauthorized edit').message);
                         }else{
                             let query = "update comment set content=? where id=?";
@@ -104,7 +197,7 @@ route.put('/edit/:id', [authJwt.verifyToken], (req, res) => {
                                             if (rows[0] === undefined)
                                                 res.status(400).send(new Error('Comment doesn\'t exist').message);
                                             else {
-                                                res.send(rows[0]);
+                                                res.status(200).send(rows[0]);
                                             }
                                         }
                                     })
@@ -120,16 +213,21 @@ route.put('/edit/:id', [authJwt.verifyToken], (req, res) => {
 
 route.post('/comment', [authJwt.verifyToken], (req, res) => {
 
-    if(req.user.user_id !== req.body.user_id){
-        return res.status(401).send(new Error('Unauthorized post').message);
-    }
     let {error} = Joi.validate(req.body, scheme);
 
     if (error) {
         res.status(400).send(error.details[0].message);
     } else {
-        let query = "insert into comment (user_id, image_id, content) values (?, ?, ?)";
-        let formatted = mysql.format(query, [req.body.user_id, req.body.image_id, req.body.content]);
+        let query = "";
+        let formatted = "";
+        if(req.body.comment_id){
+            query = "insert into comment (user_id, image_id, content, comment_id) values (?, ?, ?, ?)";
+            formatted = mysql.format(query, [req.user.user_id, req.body.image_id, req.body.content, req.body.comment_id]);
+        }else{
+            query = "insert into comment (user_id, image_id, content) values (?, ?, ?)"
+            formatted = mysql.format(query, [req.user.user_id, req.body.image_id, req.body.content]);
+        }
+
         pool.query(formatted, (err, row) => {
             if (err)
                 res.status(500).send(err.sqlMessage);

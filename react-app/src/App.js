@@ -18,6 +18,7 @@ import store from "./helpers/store";
 import { makeStyles } from '@material-ui/core';
 
 import {clearMessage} from "./actions/apiMessage";
+import ImageDetails from "./components/ImageDetails";
 
 const useStyles = makeStyles((theme) => ({
     toolbar: theme.mixins.toolbar,
@@ -39,6 +40,7 @@ const App = () => {
                           <Route exact path="/register" component={Register} />
                           <Route exact path="/profile" component={Profile} />
                           <Route exact path="/images" component={ImagesList} />
+                          <Route exact path="/details" component={ImageDetails} />
                       </Switch>
 
                   </div>

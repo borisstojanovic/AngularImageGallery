@@ -2,14 +2,16 @@ import {
     ADD_IMAGE_SUCCESS,
     EDIT_IMAGE_SUCCESS,
     GET_IMAGES_SUCCESS,
+    GET_IMAGE_SUCCESS,
     DELETE_IMAGE_SUCCESS,
     SET_MESSAGE,
     GET_IMAGES_PAGINATED_SUCCESS,
     LIKE_SUCCESS,
+    DISLIKE_SUCCESS,
     DELETE_LIKE_SUCCESS,
     FAVORITE_SUCCESS,
     DELETE_FAVORITE_SUCCESS,
-    CHANGE_SORT
+    CHANGE_SORT, ADD_VIEW_SUCCESS
 } from "./type";
 
 import ImagesService from "../services/images";
@@ -76,7 +78,6 @@ export const edit = (userId, description) => (dispatch) => {
 export const update = (userId, description, image) => (dispatch) => {
     return ImagesService.updateImage(userId, description, image)
         .then((response) => {
-                console.log(response)
                 dispatch({
                     type: EDIT_IMAGE_SUCCESS,
                     payload: { image: response.data },
@@ -108,9 +109,24 @@ export const getAll = () => (dispatch) => {
         );
 };
 
+export const getImage = (id) => (dispatch) => {
+    return ImagesService.get(id)
+        .then((response) => {
+                dispatch({
+                    type: GET_IMAGE_SUCCESS,
+                    payload: { image: response.data },
+                });
+
+                return Promise.resolve();
+            },
+            (error) => {
+                sendErrorMessage(error, dispatch);
+                return Promise.reject();
+            }
+        );
+};
+
 export const getAllPaginatedSort = (page, size, sort) => (dispatch) => {
-    console.log(page)
-    console.log(sort)
     return ImagesService.getAllPaginatedSort(page, size, sort)
         .then((response) => {
                 dispatch({
@@ -130,7 +146,6 @@ export const getAllPaginatedSort = (page, size, sort) => (dispatch) => {
 export const getAllForUser = (username, page, size, sort) => (dispatch) => {
     return ImagesService.getAllForUser(username, page, size, sort)
         .then((response) => {
-                console.log(response)
                 dispatch({
                     type: GET_IMAGES_PAGINATED_SUCCESS,
                     payload: { images: response.data, sort: sort, search: username },
@@ -178,13 +193,36 @@ export const remove = (id) => (dispatch) => {
         );
 };
 
+export const addViews = (image_id) => (dispatch) => {
+    return ImagesService.addViews(image_id)
+        .then((response) => {
+                dispatch({
+                    type: ADD_VIEW_SUCCESS,
+                    payload: image_id,
+                });
+                return Promise.resolve();
+            },
+            (error) => {
+                sendErrorMessage(error, dispatch);
+                return Promise.reject();
+            }
+        );
+};
+
 export const addLike = (user_id, image_id, is_like) => (dispatch) => {
     return ImagesService.like(user_id, image_id, is_like)
         .then((response) => {
-                dispatch({
-                    type: LIKE_SUCCESS,
-                    payload: response.data,
-                });
+                if(response.data.is_like === 1){
+                    dispatch({
+                        type: LIKE_SUCCESS,
+                        payload: response.data,
+                    });
+                }else{
+                    dispatch({
+                        type: DISLIKE_SUCCESS,
+                        payload: response.data,
+                    });
+                }
                 return Promise.resolve();
             },
             (error) => {

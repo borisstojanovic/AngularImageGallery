@@ -9,8 +9,8 @@ import {useSelector, useDispatch} from "react-redux";
 import { withRouter } from "react-router-dom";
 import {addLike, removeLike, addFavorite, removeFavorite} from "../actions/images";
 import {IconButton} from "@material-ui/core";
-import GradeOutlinedIcon from '@material-ui/icons/GradeOutlined';
-import GradeIcon from '@material-ui/icons/Grade';
+import FavoriteBorderIcon from '@material-ui/icons/FavoriteBorder';
+import FavoriteIcon from '@material-ui/icons/Favorite';
 import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt';
 import ThumbUpAltOutlinedIcon from '@material-ui/icons/ThumbUpAltOutlined';
 import ThumbDownAltIcon from '@material-ui/icons/ThumbDownAlt';
@@ -38,7 +38,7 @@ const ImageItem = (props) => {
     };
 
     const handleItemClick = () => {
-
+        props.history.push("/details/?id=" + props.image.id);
     }
 
     const handleFavoriteClick = () => {
@@ -106,8 +106,8 @@ const ImageItem = (props) => {
                         <small style={{fontSize: "10pt", marginLeft: "4px", marginTop: "5px"}}>{props.image.dislikes}</small>}
                     </IconButton>
                     <IconButton size={"small"} onClick={handleFavoriteClick}>
-                        {props.image.isFavorite && <GradeIcon style={{color: "#ffbe00"}}/>}
-                        {!props.image.isFavorite && <GradeOutlinedIcon/>}
+                        {props.image.isFavorite && <FavoriteIcon style={{color: "#ffbe00"}}/>}
+                        {!props.image.isFavorite && <FavoriteBorderIcon/>}
                     </IconButton>
                 </CardActions>
             </Card>

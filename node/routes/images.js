@@ -60,13 +60,14 @@ function isFavorite(user_id, image_id) {
 }
 
 function getUser(id) {
-    let query = 'select * from user where id=?'
+    let query = 'select email, username, path from user where id=?'
     let formatted = mysql.format(query, id)
     return new Promise((resolve, reject) => {
         pool.query(formatted, (err, response) => {
             if(err){
                 reject(err)
             }else{
+                if(response[0].path) response[0].path = cloudinary.url(response[0].path);
                 resolve(response[0])
             }
         })
@@ -402,33 +403,42 @@ route.post('/add', images.single('image'), [authJwt.verifyToken], async (req, re
     }
 });
 
-route.get('/:id', [authJwt.verifyToken], (req, res) => {
-    let query = 'select * from images where id=?';
+route.get('/:id', [authJwt.deserializeUser], (req, res) => {
+    let query = "select images.*, count(case when like.is_like=1 then 1 else NULL end) as likes, \n" +
+        "count(case when like.is_like=0 then 1 else NULL end) as dislikes from images left join `like` on \n" +
+        "images.id = like.image_id where images.id = ? group by images.id";
     let formated = mysql.format(query, [req.params.id]);
 
     pool.query(formated, async (err, rows) => {
         if (err)
             res.status(500).send(err.sqlMessage);
         else {
-            if(rows[0] !== undefined) {
-                rows[0].path = cloudinary.url(rows[0].path);
+            if(rows.length === 0){
+                return res.status(200).send(rows);
+            }else{
+                if(rows[0] !== undefined) {
+                    rows[0].path = cloudinary.url(rows[0].path);
+                }
+                await getUser(rows[0].owner_id).then( response => {
+                    rows[0].user = response;
+                }).catch( err => {
+                    return res.status(400).send(err.message)
+                });
+                if(req.user){
+                    await isFavorite(req.user.user_id, rows[0].id).then(response => {
+                        rows[0].isFavorite = response;
+                    }).catch(err => {
+                        return res.status(400).send(err.message);
+                    })
+                    await isLike(req.user.user_id, rows[0].id).then(response => {
+                        rows[0].isLike = response;
+                    }).catch(err => {
+                        return res.status(400).send(err.message);
+                    })
+                }
+
+                res.send(rows[0]);
             }
-            await getUser(rows[0].owner_id).then( response => {
-                rows[0].user = response;
-            }).catch( err => {
-                return res.status(400).send(err.message)
-            });
-            await isFavorite(req.user.user_id, rows[0].id).then(response => {
-                rows[0].isFavorite = response;
-            }).catch(err => {
-                return res.status(400).send(err.message);
-            })
-            await isLike(req.user.user_id, rows[0].id).then(response => {
-                rows[0].isLike = response;
-            }).catch(err => {
-                return res.status(400).send(err.message);
-            })
-            res.send(rows[0]);
         }
     });
 });

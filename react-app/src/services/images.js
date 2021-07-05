@@ -5,6 +5,10 @@ import authHeader from "./auth-header";
 
 const API_URL = "http://localhost:8080/api/";
 
+const get = (id) => {
+    return axios.get(API_URL + "images/" + id, {headers: authHeader()});
+};
+
 const getAll = () => {
     return axios.get(API_URL + "images/all", {headers: authHeader()});
 };
@@ -46,6 +50,10 @@ const addImage = (title, userId, description, image) => {
     return axios.post(API_URL + "images/add", image, {headers: authMultipartHeader()});
 };
 
+const addViews = (image_id) => {
+    return axios.put(API_URL + "images//incrementViews/" + image_id, {headers: authHeader()});
+};
+
 const updateImage = (id, title, userId, description, image) => {
     let formData = new FormData();
     formData.append('title', title);
@@ -79,6 +87,7 @@ const removeFavorite = (user_id, image_id) => {
 }
 
 const images = {
+    get,
     getAll,
     getAllForUser,
     getAllByTitle,
@@ -91,7 +100,8 @@ const images = {
     like,
     removeLike,
     favorite,
-    removeFavorite
+    removeFavorite,
+    addViews
 }
 
 export default images;

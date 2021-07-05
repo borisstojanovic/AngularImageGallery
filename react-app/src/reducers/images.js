@@ -6,6 +6,7 @@ import {
     FAVORITE_SUCCESS,
     DELETE_FAVORITE_SUCCESS,
     CHANGE_SORT,
+    DISLIKE_SUCCESS, ADD_VIEW_SUCCESS,
 } from "../actions/type";
 
 const initialState = {
@@ -40,7 +41,7 @@ export default function (state = initialState, action) {
                 ...state,
                 sort: payload
             };
-        case LIKE_SUCCESS:
+        case DISLIKE_SUCCESS:
             return {
                 ...state,
                 images: state.images.map(image => {
@@ -48,15 +49,24 @@ export default function (state = initialState, action) {
                         //check if image was liked or disliked by the user previously
                         if(image.isLike){
                             image.likes -= 1;
-                        }else if(image.isLike === false){
+                        }
+                        image.dislikes += 1;
+                        image.isLike = false;
+                    }
+                    return image;
+                })
+            };
+        case LIKE_SUCCESS:
+            return {
+                ...state,
+                images: state.images.map(image => {
+                    if(image.id === payload.image_id) {
+                        //check if image was liked or disliked by the user previously
+                        if(image.isLike === false){
                             image.dislikes -= 1;
                         }
-                        image.isLike = payload.is_like === 1;
-                        if(image.isLike){
-                            image.likes += 1;
-                        }else{
-                            image.dislikes += 1;
-                        }
+                        image.likes += 1;
+                        image.isLike = true;
                     }
                     return image;
                 })
@@ -90,6 +100,15 @@ export default function (state = initialState, action) {
                 ...state,
                 images: state.images.map(image => {
                     if(image.id === payload.image_id) image.isFavorite = false;
+
+                    return image;
+                })
+            };
+        case ADD_VIEW_SUCCESS:
+            return {
+                ...state,
+                images: state.images.map(image => {
+                    if(image.id === payload) image.views+=1;
 
                     return image;
                 })
