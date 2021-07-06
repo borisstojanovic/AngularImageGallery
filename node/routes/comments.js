@@ -1,8 +1,8 @@
 const express = require('express');
 const Joi = require('joi');
 const { mysql } = require('../utils/database');
-const { authMiddleware } = require('../middleware/auth')
 const authJwt = require("../middleware/authJwt");
+const { cloudinary } = require('../utils/cloudinary');
 
 //database setup
 const { pool } = require('../utils/database');
@@ -25,28 +25,17 @@ route.get('/all',   (req, res) => {
     });
 });
 
-const getUser = (id) => {
-    let query = 'select * from user where id=?'
-    let formatted = mysql.format(query, id)
-    return new Promise((resolve, reject) => {
-        pool.query(formatted, (err, response) => {
-            if(err){
-                reject(err)
-            }else{
-                resolve(response[0])
-            }
-        })
-    })
-}
-
 const getChildren = (id) => {
-    let query = 'select * from comment where comment_id=? order by date_created desc'
+    let query = 'select comment.*, user.username, user.path from comment left join user on comment.user_id = user.id where comment.comment_id=? order by comment.id desc'
     let formatted = mysql.format(query, id)
     return new Promise((resolve, reject) => {
         pool.query(formatted, (err, rows) => {
             if(err){
                 reject(err);
             }else{
+                for(const row of rows){
+                    row.path = cloudinary.url(row.path);
+                }
                 resolve(rows);
             }
         })
@@ -123,10 +112,10 @@ route.get('/image/paginated/:id/:startId/:size',   (req, res) => {
     let query = "";
     let formatted = "";
     if(parseInt(start) === 0){
-        query = 'select * from comment where image_id=? and comment_id is null order by id desc limit ?';
+        query = 'select c.*, u.username, u.path from comment c left join user u on c.user_id = u.id where c.image_id=? and c.comment_id is null order by c.id desc limit ?';
         formatted = mysql.format(query, [req.params.id, parseInt(size)]);
     }else{
-        query = 'select * from comment where image_id=? and comment_id is null and id<? order by id desc limit ?';
+        query = 'select c.*, u.username, u.path from comment c left join user u on c.user_id = u.id where c.image_id=? and c.comment_id is null and c.id<? order by c.id desc limit ?';
         formatted = mysql.format(query, [req.params.id, parseInt(start), parseInt(size)]);
     }
     pool.query(formatted, async (err, rows) => {
@@ -137,9 +126,7 @@ route.get('/image/paginated/:id/:startId/:size',   (req, res) => {
             //get user info for each comment
             //get all children for each parent comment
             for(const row of rows){
-                await getUser(row.user_id)
-                    .then((user) => row.user = user)
-                    .catch((err) => {return res.status(500).send(err)});
+                row.path = cloudinary.url(row.path);
                 await getChildren(row.id)
                     .then((children) => row.children = children)
                     .catch((err) => {return res.status(500).send(err)})
@@ -163,12 +150,13 @@ route.get('/user/:id', async (req, res) => {
 });
 
 route.get('/comment/:id', (req, res) => {
-    let query = 'select * from comment where id=?';
+    let query = 'select c.*, u.username, u.path from comment c left join user u on u.id = c.user_id where c.id=?';
     let formated = mysql.format(query, [req.params.id]);
     pool.query(formated, async (err, rows) => {
         if (err)
             res.status(500).send(err.sqlMessage);
         else {
+            rows[0].path = cloudinary.url(rows[0].path);
             res.send(rows[0]);
         }
     });
@@ -247,12 +235,13 @@ route.post('/comment', [authJwt.verifyToken], (req, res) => {
             if (err)
                 res.status(500).send(err.sqlMessage);
             else {
-                let query = "select * from comment where id=?";
+                let query = "select c.*, u.username, u.path from comment c left join user u on c.user_id=u.id where c.id=?";
                 let formatted = mysql.format(query, [row.insertId]);
                 pool.query(formatted, (err, rows) => {
                     if(err){
                         res.status(500).send(err.sqlMessage);
                     }else{
+                        rows[0].path = cloudinary.url(rows[0].path);
                         res.status(200).send(rows[0]);
                     }
                 });

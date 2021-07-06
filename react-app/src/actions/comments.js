@@ -47,7 +47,7 @@ export const addNestedComment = (image_id, content, comment_id) => (dispatch) =>
         (response) => {
             dispatch({
                 type: ADD_COMMENT_SUCCESS,
-                payload: { comment: response.data }
+                payload: { comment: response.data, comment_id: response.data.comment_id }
             });
             return Promise.resolve();
         },

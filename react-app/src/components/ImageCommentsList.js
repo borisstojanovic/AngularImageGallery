@@ -4,6 +4,9 @@ import {addComment, getAllCommentsPaginated} from "../actions/comments";
 import {withRouter} from "react-router-dom";
 import Button from '@material-ui/core/Button';
 import TextField from "@material-ui/core/TextField";
+import CommentItem from "./CommentItem";
+import Divider from "@material-ui/core/Divider";
+import Paper from "@material-ui/core/Paper";
 
 const ImageCommentsList = (props) => {
     const {comments, allLoaded, size} = useSelector((state) => state.comments);
@@ -48,7 +51,7 @@ const ImageCommentsList = (props) => {
         dispatch(addComment(props.imageId, comment.value)).catch(err=> {
             if(commentRef.current){
                 commentRef.current.value = "";
-                setComment({value: "", error: ""});
+                setComment({value: "", error: err});
             }
         });
         if(commentRef.current){
@@ -83,12 +86,14 @@ const ImageCommentsList = (props) => {
                     </Button>
                 </form>
             </div>
-
+            <Paper style={{ padding: "30px 20px", background: "#fff4eb", marginTop: "10px" }}>
             {comments.length>0 && comments.map((comment) => (
-                <div key={comment.id}>
-                    {comment.content}
-                </div>
+                    <div key={comment.id}>
+                        <CommentItem comment={comment}/>
+                        <Divider variant="fullWidth" style={{ margin: "30px 0" }} />
+                    </div>
             ))}
+            </Paper>
             {!allLoaded &&
             <Button fullWidth variant="contained" style={{background: "#AC3B61", color: "#EEE2DC"}} onClick={getAllComments}>
                 Load More

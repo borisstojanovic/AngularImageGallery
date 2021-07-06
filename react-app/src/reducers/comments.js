@@ -19,13 +19,17 @@ export default function (state = initialState, action) {
             return {
                 ...state,
                 //if comment is parent append it to the start of the state
-                //otherwise adds it to the children list of that parent
+                //otherwise adds it to the children object of that parent
+                //children is an object of type {child_id: child, child_id2: child2...}
                 comments: !payload.comment_id?[payload.comment, ...state.comments]:
                     state.comments.map((comment) => {
-                    if(comment.id === payload.comment_id){
-                        comment.children[payload.comment_id] = payload;
-                    }
-                    return comment;
+                        if(!comment.children){
+                            comment.children = [];
+                        }
+                        if(comment.id === payload.comment_id){
+                            comment.children.unshift(payload.comment);
+                        }
+                        return comment;
                 }),
             };
         case DELETE_COMMENT_SUCCESS:
@@ -35,8 +39,11 @@ export default function (state = initialState, action) {
                     if(comment.id === payload.id){
                         return null;
                     }
-                    if(comment.children && comment.children[payload.id]){
-                        comment.children[payload.id] = undefined;
+                    //check if comment has children
+                    //if comment.id is equal to payload comment_id that means that comment is parent for payload
+                    //in that case iterate through the children of comment and remove the payload from it
+                    if(comment.children && comment.id === payload.comment_id){
+                        comment.children = comment.children.filter((child) => child.id !== payload.id);
                     }
                     return comment;
                 }),
