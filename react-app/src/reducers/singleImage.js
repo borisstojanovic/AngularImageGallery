@@ -21,19 +21,24 @@ export default function (state = initialState, action) {
     switch (type) {
         case ADD_IMAGE_SUCCESS:
             return {
+                ...state,
                 image: payload.image
             };
         case EDIT_IMAGE_SUCCESS:
             return {
+                ...state,
                 image: payload.image
             };
         case DELETE_IMAGE_SUCCESS:
             return {
+                ...state,
                 image: {}
             };
         case GET_IMAGE_SUCCESS:
             return {
-                image: payload.image
+                ...state,
+                image: payload.image,
+                comments: []
             }
         case FAVORITE_SUCCESS:
             return {

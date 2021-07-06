@@ -2,8 +2,8 @@ import { combineReducers } from "redux";
 import auth from "./auth";
 import message from "./apiMessage";
 import images from "./images";
-import comments from "./comments";
 import singleImage from "./singleImage";
+import comments from "./comments";
 
 export default combineReducers({
     auth,

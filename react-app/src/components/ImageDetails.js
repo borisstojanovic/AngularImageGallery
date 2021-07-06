@@ -24,12 +24,18 @@ import ImageCommentsList from "./ImageCommentsList";
 
 const useStyles = makeStyles((theme) => ({
     root: {
-        maxWidth: 345,
+        minWidth: "80%",
         background: "#eee2dc"
     },
     mediaActionBar: {
         justifyContent: "space-evenly",
         background: "#fff4eb"
+    },
+    container: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        background: "#fff4eb",
     }
 }));
 
@@ -126,7 +132,7 @@ const ImageDetails = (props) => {
     }, [dispatch, loaded, props.location.search]);
 
     return (
-        <Container maxWidth="xs">
+        <Container className={classes.container} maxWidth="sm">
             <Grow in={true}>
                 <Card className={classes.root}>
                     {(!image || !image.user) &&
@@ -153,6 +159,7 @@ const ImageDetails = (props) => {
                             alt="Gallery Image"
                             image={image.path}
                             title="Gallery Image"
+                            style={{width: "100%"}}
                         />
                         <CardContent style={{height: "fit-content"}} className="media-card">
                             <Typography gutterBottom={false} variant="subtitle1" component="p">
@@ -187,8 +194,11 @@ const ImageDetails = (props) => {
                     </CardActions>
                 </Card>
             </Grow>
+            {loaded &&
+                <ImageCommentsList imageId={image.id}/>
+            }
+            <div style={{marginBottom: "10px"}}/>
 
-            <ImageCommentsList imageId={image.id}/>
 
         </Container>
 

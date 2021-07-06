@@ -40,7 +40,7 @@ const getUser = (id) => {
 }
 
 const getChildren = (id) => {
-    let query = 'select * from comment where comment_id=?'
+    let query = 'select * from comment where comment_id=? order by date_created desc'
     let formatted = mysql.format(query, id)
     return new Promise((resolve, reject) => {
         pool.query(formatted, (err, rows) => {
@@ -109,11 +109,26 @@ route.get('/image/paginated/:id/:page/:size',   (req, res) => {
 
  */
 
-route.get('/image/paginated/:id/:page/:size',   (req, res) => {
+
+/**
+ * used for comment pagination
+ * query param :id is the id of the image that the comments belong to
+ * query param :startId is the last id from the previous page, this way even on deletes or inserts page order is maintained
+ * for first request pass in startId = 0
+ * query param :size is the number of elements that will be returned
+ */
+route.get('/image/paginated/:id/:startId/:size',   (req, res) => {
     let size = req.params.size;
-    let start = (req.params.page - 1) * size;
-    let query = 'select * from comment where image_id=? and comment_id is null order by date_created limit ?,?';
-    let formatted = mysql.format(query, [req.params.id, start, parseInt(size)]);
+    let start = req.params.startId;
+    let query = "";
+    let formatted = "";
+    if(parseInt(start) === 0){
+        query = 'select * from comment where image_id=? and comment_id is null order by id desc limit ?';
+        formatted = mysql.format(query, [req.params.id, parseInt(size)]);
+    }else{
+        query = 'select * from comment where image_id=? and comment_id is null and id<? order by id desc limit ?';
+        formatted = mysql.format(query, [req.params.id, parseInt(start), parseInt(size)]);
+    }
     pool.query(formatted, async (err, rows) => {
         if (err) {
             res.status(500).send(err.sqlMessage);

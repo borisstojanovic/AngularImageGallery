@@ -28,7 +28,8 @@ const useStyles = makeStyles((theme) => ({
 const ImagesList = (props) => {
     const {images, allLoaded, sort} = useSelector((state) => state.images);
     const [page, setPage] = useState(1);
-    const [search, setSearch] = useState("")
+    const [search, setSearch] = useState("");
+    const [loaded, setLoaded] = useState(false);
     const size = 20;
     const dispatch = useDispatch();
 
@@ -38,31 +39,29 @@ const ImagesList = (props) => {
 
     useEffect(() => {
         let values = queryString.parse(props.location.search);
-        if(!values.input){
+        if(!values.input || values.input.length === 0) {
+            setSearch("");
+        }else{
+            setSearch(values.input);
+        }
+        setPage(1);
+        setLoaded(true);
+    }, [props.location.search])
+
+    useEffect(() => {
+        if(!loaded){
+            return;
+        }
+        if(search.length === 0){
             dispatch(getAllPaginatedSort(page, size, sort));
         }else {
-            if (values.input.length === 0) {
-                dispatch(getAllPaginatedSort(page, size, sort));
+            if (search.startsWith("@")) {
+                dispatch(getAllForUser(search.substring(1), page, size, sort));
             } else {
-                let pageNum = page;
-                //in case they arent equal only change the state
-                //this will trigger the same useEffect again but with the updated state
-                if(values.input !== search){
-                    setPage(1);
-                    setSearch(values.input);
-                    pageNum = 1;
-                    return;
-                }
-
-                if (values.input.startsWith("@")) {
-                    dispatch(getAllForUser(values.input.substring(1), pageNum, size, sort));
-                } else {
-                    dispatch(getAllByTitle(values.input, pageNum, size, sort));
-                }
+                dispatch(getAllByTitle(search, page, size, sort));
             }
         }
-    }, [props.location.search, dispatch, sort, page, search]);
-    //whenever url changes run useEffect
+    }, [dispatch, sort, page, search, loaded]);
 
     const breakpointColumnsObj = {
         default: 5,
