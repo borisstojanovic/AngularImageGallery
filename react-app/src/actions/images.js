@@ -148,7 +148,7 @@ export const getAllForUser = (username, page, size, sort) => (dispatch) => {
         .then((response) => {
                 dispatch({
                     type: GET_IMAGES_PAGINATED_SUCCESS,
-                    payload: { images: response.data, sort: sort, search: username },
+                    payload: { images: response.data, sort: sort, search: username, page: page },
                 });
 
                 return Promise.resolve();

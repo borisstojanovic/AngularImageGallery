@@ -82,7 +82,7 @@ export const getAllComments = () => (dispatch) => {
                     type: GET_COMMENTS_SUCCESS,
                     payload: {
                         comments: response.data,
-                        imageId: 0
+                        image_id: 0,
                     },
                 });
 
@@ -95,14 +95,15 @@ export const getAllComments = () => (dispatch) => {
         );
 };
 
-export const getAllCommentsPaginated = (image_id, page, size) => (dispatch) => {
-    return CommentsService.getAllPaginated(image_id, page, size)
+export const getAllCommentsPaginated = (image_id, startId, size) => (dispatch) => {
+    return CommentsService.getAllPaginated(image_id, startId, size)
         .then((response) => {
                 dispatch({
                     type: GET_COMMENTS_SUCCESS,
                     payload: {
                         comments: response.data,
-                        image_id: image_id
+                        image_id: image_id,
+                        startId: startId
                     },
                 });
 
@@ -118,12 +119,15 @@ export const getAllCommentsPaginated = (image_id, page, size) => (dispatch) => {
 export const removeComment = (id) => (dispatch) => {
     return CommentsService.deleteComment(id)
         .then((response) => {
-                dispatch({
-                    type: DELETE_COMMENT_SUCCESS,
-                    payload: { comment: response.data },
-                });
-                return Promise.resolve();
-            },
+            if(response.data && response.data.comment_id === null){
+                response.data.comment_id = undefined;
+            }
+            dispatch({
+                type: DELETE_COMMENT_SUCCESS,
+                payload: response.data,
+            });
+            return Promise.resolve();
+        },
             (error) => {
                 sendErrorMessage(error, dispatch);
                 return Promise.reject();

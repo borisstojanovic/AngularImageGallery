@@ -1,5 +1,5 @@
-import React, {useEffect} from "react";
-import {Provider, useDispatch} from "react-redux";
+import React from "react";
+import {Provider} from "react-redux";
 import { Router } from "react-router"
 import { Switch, Route } from "react-router-dom";
 
@@ -17,8 +17,8 @@ import store from "./helpers/store";
 
 import { makeStyles } from '@material-ui/core';
 
-import {clearMessage} from "./actions/apiMessage";
 import ImageDetails from "./components/ImageDetails";
+import Scroll from "./components/Scroll";
 
 const useStyles = makeStyles((theme) => ({
     toolbar: theme.mixins.toolbar,
@@ -42,7 +42,7 @@ const App = () => {
                           <Route exact path="/images" component={ImagesList} />
                           <Route exact path="/details" component={ImageDetails} />
                       </Switch>
-
+                        <Scroll showBelow={250}/>
                   </div>
               </Router>
           </div>

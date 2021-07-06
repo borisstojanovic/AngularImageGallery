@@ -21,6 +21,29 @@ import Grow from "@material-ui/core/Grow";
 import queryString from "query-string";
 import Container from "@material-ui/core/Container";
 import ImageCommentsList from "./ImageCommentsList";
+import Modal from "@material-ui/core/Modal";
+import Backdrop from "@material-ui/core/Backdrop";
+import Fade from "@material-ui/core/Fade";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import Dialog from "@material-ui/core/Dialog";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogActions from "@material-ui/core/DialogActions";
+import Button from "@material-ui/core/Button";
+
+
+function formatDate(date) {
+    let d = new Date(date);
+    let month = '' + (d.getMonth() + 1);
+    let day = '' + d.getDate();
+    let year = d.getFullYear();
+
+    if (month.length < 2)
+        month = '0' + month;
+    if (day.length < 2)
+        day = '0' + day;
+
+    return [year, month, day].join('/');
+}
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -36,7 +59,12 @@ const useStyles = makeStyles((theme) => ({
         flexDirection: "column",
         alignItems: "center",
         background: "#fff4eb",
-    }
+    },
+    modal: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
 }));
 
 const ImageDetails = (props) => {
@@ -44,6 +72,8 @@ const ImageDetails = (props) => {
     const { image } = useSelector((state) => state.singleImage);
 
     const [loaded, setLoaded] = useState(false);
+    const [openModal, setOpenModal] = useState(false);
+
     const dispatch = useDispatch();
 
     const classes = useStyles();
@@ -65,7 +95,11 @@ const ImageDetails = (props) => {
     };
 
     const handleItemClick = () => {
-        //todo otvaranje modala
+        setOpenModal(true);
+    }
+
+    const handleCloseModal = () => {
+        setOpenModal(false);
     }
 
     const handleFavoriteClick = () => {
@@ -133,6 +167,24 @@ const ImageDetails = (props) => {
 
     return (
         <Container className={classes.container} maxWidth="sm">
+            <Dialog
+                fullWidth={true}
+                maxWidth={"md"}
+                open={openModal}
+                onClose={handleCloseModal}
+                style={{display: 'flex', flexDirection: 'column', margin: 'auto', width: 'fit-content'}}
+                aria-labelledby="max-width-dialog-title"
+            >
+                <DialogTitle><a href={image.path} target="_blank">{image.title}</a> </DialogTitle>
+                <DialogContent>
+                    <img style={{width: "100%"}} src={image.path} alt={image.description}/>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseModal} color="primary">
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
             <Grow in={true}>
                 <Card className={classes.root}>
                     {(!image || !image.user) &&
@@ -150,7 +202,7 @@ const ImageDetails = (props) => {
                             <Avatar aria-label="image" src={image.user.path}/>
                         }
                         title={image.user.username}
-                        subheader={image.time}
+                        subheader={formatDate(image.time)}
                     />
                     }
                     <CardActionArea onClick={handleItemClick}>

@@ -7,7 +7,8 @@ import {
 const initialState = {
     comments: [],
     allLoaded: false,
-    size: 10,
+    size: 20,
+    startId: 0,
     imageId: 0
 }
 
@@ -35,10 +36,7 @@ export default function (state = initialState, action) {
         case DELETE_COMMENT_SUCCESS:
             return {
                 ...state,
-                comments: state.comments.map((comment) => {
-                    if(comment.id === payload.id){
-                        return null;
-                    }
+                comments: payload.comment_id!==undefined?state.comments.map((comment) => {
                     //check if comment has children
                     //if comment.id is equal to payload comment_id that means that comment is parent for payload
                     //in that case iterate through the children of comment and remove the payload from it
@@ -46,7 +44,7 @@ export default function (state = initialState, action) {
                         comment.children = comment.children.filter((child) => child.id !== payload.id);
                     }
                     return comment;
-                }),
+                }):state.comments.filter((comment) => comment.id !== payload.id),
             };
         case GET_COMMENTS_SUCCESS:
             return {
@@ -54,12 +52,11 @@ export default function (state = initialState, action) {
                 //check if image was changed
                 //if it wasn't changed simply append new comments to the list
                 //otherwise replace all comments with the new ones
-                comments: state.imageId === payload.image_id?
+                comments: (state.imageId === payload.image_id && state.startId !== payload.startId)?
                     [...state.comments, ...payload.comments]:
                     payload.comments,
                 imageId: payload.image_id,
                 allLoaded: payload.comments.length < state.size || state.comments.length > 500 //allow max 500 comments to be loaded
-                //since size will be 20 if fewer commets are returned it means there are no more comments to load
             };
         default:
             return state;

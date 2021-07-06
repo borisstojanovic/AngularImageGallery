@@ -135,6 +135,7 @@ route.get('/image/paginated/:id/:startId/:size',   (req, res) => {
         }
     });
 });
+
 route.get('/user/:id', async (req, res) => {
 
     let query = 'select * from comment where user_id=?';
@@ -258,6 +259,9 @@ route.delete('/comment/:id', [authJwt.verifyToken], (req, res) => {
             res.status(500).send(err.sqlMessage);
         }else{
             let comment = rows[0];
+            if(comment === undefined){
+                return res.status(404).send("Comment doesn't exist");
+            }
             if(comment.user_id !== req.user.user_id){
                 res.status(401).send(new Error('Unauthorized delete'));
             }else {

@@ -7,14 +7,20 @@ import TextField from "@material-ui/core/TextField";
 import CommentItem from "./CommentItem";
 import Divider from "@material-ui/core/Divider";
 import Paper from "@material-ui/core/Paper";
+import queryString from "query-string";
+import Grid from "@material-ui/core/Grid";
+import Link from "@material-ui/core/Link";
 
 const ImageCommentsList = (props) => {
     const {comments, allLoaded, size} = useSelector((state) => state.comments);
+    const { isLoggedIn } = useSelector((state) => state.auth);
 
     const commentRef = useRef(null);
 
     const [startId, setStartId] = useState(0);
     const [comment, setComment] = useState({value:"", error:""});
+    const [loaded, setLoaded] = useState(false);
+    const [imageId, setImageId] = useState(0);
     const dispatch = useDispatch();
 
     const getAllComments = () => {
@@ -26,8 +32,16 @@ const ImageCommentsList = (props) => {
     }
 
     useEffect(() => {
-        dispatch(getAllCommentsPaginated(props.imageId, startId, size));
-    }, [dispatch, startId, props.imageId]);
+        setImageId(props.imageId);
+        setLoaded(true);
+    }, [props.imageId])
+
+    useEffect(() => {
+        if(!loaded){
+            return;
+        }
+        dispatch(getAllCommentsPaginated(imageId, startId, size));
+    }, [dispatch, startId, imageId, loaded]);
 
     const onChangeComment = (e) => {
         const newComment = e.target.value;
@@ -72,8 +86,9 @@ const ImageCommentsList = (props) => {
                         required
                         fullWidth
                         id="comment"
-                        label="Comment"
+                        label={isLoggedIn?"Comment":"Log in or sign up to comment!"}
                         name="comment"
+                        disabled={!isLoggedIn}
                         autoComplete="off"
                         onChange={onChangeComment}
                         error={comment.error.length > 0}
@@ -81,13 +96,15 @@ const ImageCommentsList = (props) => {
                     />
                     <Button size="small" hidden={true} disabled={true}>
                     </Button>
+                    {isLoggedIn &&
                     <Button size="small" type="submit" style={{float: "right", background: "#AC3B61", color: "#EEE2DC"}}>
                         Post
-                    </Button>
+                    </Button>}
+
                 </form>
             </div>
-            <Paper style={{ padding: "30px 20px", background: "#fff4eb", marginTop: "10px" }}>
-            {comments.length>0 && comments.map((comment) => (
+            <Paper style={{ padding: "0px 20px", background: "#fef0e7", marginTop: "10px" }}>
+            {loaded && comments.length>0 && comments.map((comment) => (
                     <div key={comment.id}>
                         <CommentItem comment={comment}/>
                         <Divider variant="fullWidth" style={{ margin: "30px 0" }} />

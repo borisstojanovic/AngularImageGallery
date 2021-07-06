@@ -296,7 +296,7 @@ route.get('/getAllForUser/:username/:page/:size/:sort', [authJwt.deserializeUser
         query = "select images.*, count(case when like.is_like=1 then 1 else NULL end) as likes, \n" +
             "count(case when like.is_like=0 then 1 else NULL end) as dislikes from images left join `like` on \n" +
             "images.id = like.image_id left join user on images.owner_id = user.id \n" +
-            "where user.username = ? group by images.id order by likes - dislikes desc limit ?,?";
+            "where user.username = ? group by images.id order by likes - dislikes desc, time desc limit ?,?";
     }else if(sort === 'views'){
         query = "select images.*, count(case when like.is_like=1 then 1 else NULL end) as likes,\n" +
             "count(case when like.is_like=0 then 1 else NULL end) as dislikes from images left join `like` on\n" +
@@ -311,7 +311,7 @@ route.get('/getAllForUser/:username/:page/:size/:sort', [authJwt.deserializeUser
         query = "select images.*, count(case when like.is_like=1 then 1 else NULL end) as likes,\n" +
             "count(case when like.is_like=0 then 1 else NULL end) as dislikes from images left join `like` on\n" +
             "images.id = like.image_id left join user on images.owner_id = user.id\n" +
-            "where user.username = ? group by images.id limit ?,?";
+            "where user.username = ? group by images.id order by time limit ?,?";
     }
     let formatted = mysql.format(query, [username, start, parseInt(size)]);
     pool.query(formatted, async (err, rows) => {

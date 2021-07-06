@@ -16,7 +16,7 @@ const getAllPaginated = (image_id, page, size) => {
 };
 
 const deleteComment = (id) => {
-    return axios.delete(API_URL + 'comments/' + id, {headers: authHeader()});
+    return axios.delete(API_URL + 'comments/comment/' + id, {headers: authHeader()});
 }
 
 const addComment = (imageId, content) => {

@@ -10,11 +10,13 @@ import clsx from "clsx";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import Divider from "@material-ui/core/Divider";
 import Paper from "@material-ui/core/Paper";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import {addNestedComment} from "../actions/comments";
-
+import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
+import {removeComment} from '../actions/comments';
+import {withRouter} from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
     expand: {
@@ -26,6 +28,7 @@ const useStyles = makeStyles((theme) => ({
     },
     expandOpen: {
         transform: 'rotate(180deg)',
+        color: "#AC3B61"
     },
     medium: {
         width: theme.spacing(5),
@@ -34,6 +37,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const CommentItem = (props) => {
+
+    const {user: currentUser, isLoggedIn} = useSelector((state) => state.auth)
 
     const classes = useStyles();
     const dispatch = useDispatch();
@@ -61,6 +66,12 @@ const CommentItem = (props) => {
         setComment({value: newComment, error: error});
     }
 
+    const handleDelete = () => {
+        if(currentUser && props.comment.user_id === currentUser.id){
+            dispatch(removeComment(props.comment.id));
+        }
+    }
+
     const handleComment = (e) => {
         e.preventDefault();
         if(comment.value.length === 0){
@@ -79,6 +90,7 @@ const CommentItem = (props) => {
         });
         if(commentRef.current){
             setExpanded(true);
+            setReplyExpanded(false);
             commentRef.current.value = "";
             setComment({value: "", error: ""});
         }
@@ -113,8 +125,18 @@ const CommentItem = (props) => {
             let floor = Math.floor(interval);
             return floor!==1?floor + " minutes":floor + " minute";
         }
-        let floor = Math.floor(interval);
+        let floor = Math.floor(seconds);
         return floor!==1?floor + " seconds":floor + " second";
+    }
+
+    const showDelete = () => {
+        return (
+            <div>
+                <IconButton onClick={handleDelete}>
+                    <DeleteForeverIcon/> <Typography variant={"button"}>Delete</Typography>
+                </IconButton>
+            </div>
+        )
     }
 
     const showParentReply = () => {
@@ -163,28 +185,29 @@ const CommentItem = (props) => {
     const showChildrenExpand = () => {
         return(
             <div>
-                <div>
+                <div style={{display: "flex", flexDirection: "row", flexWrap: "wrap"}}>
                     <IconButton
                         onClick={handleExpandClick}
                         aria-expanded={expanded}
                         aria-label="show more"
                     >
-                        {!expanded && <ExpandMoreIcon className={clsx(classes.expand, {
+                        <ExpandMoreIcon className={clsx(classes.expand, {
                             [classes.expandOpen]: expanded,
-                        })}/>}
-                        {expanded && <ExpandMoreIcon style={{color: "#AC3B61"}} className={clsx(classes.expand, {
-                            [classes.expandOpen]: expanded,
-                        })}/>}
+                        })}/>
                         {!expanded && <Typography variant={"button"}>View Replies</Typography>}
-                        {expanded && <Typography variant={"button"} style={{color: "#AC3B61"}}>Close Replies</Typography>}
+                        {expanded && <Typography variant={"button"} style={{color: "#AC3B61"}}>Hide Replies</Typography>}
                     </IconButton>
+                    {currentUser && currentUser.id === props.comment.user_id &&
+                    <IconButton onClick={handleDelete}>
+                        <DeleteForeverIcon/> <Typography variant={"button"}>Delete</Typography>
+                    </IconButton>}
                 </div>
                 <Collapse in={expanded} timeout="auto" unmountOnExit>
-                    <Paper style={{ padding: "20px 10px", background: "#fbf0e9", marginTop: "10px" }}>
+                    <Paper style={{ padding: "10px 10px", background: "#f7e7e0", marginTop: "10px" }}>
                         {props.comment.children.map((comment) => (
                             <div key={comment.id}>
                                 <CommentItem comment={comment}/>
-                                <Divider variant="fullWidth" style={{ margin: "20px 0" }} />
+                                <Divider variant="fullWidth" style={{ margin: "10px 0" }} />
                             </div>
                         ))}
                     </Paper>
@@ -209,8 +232,9 @@ const CommentItem = (props) => {
                     {timeSince(props.comment.date_created)} ago
                 </p>
                 <Grid item>
-                    {(props.comment.comment_id === null || !props.comment.comment_id) && showParentReply()}
+                    {((props.comment.comment_id === null || !props.comment.comment_id) && isLoggedIn) && showParentReply()}
                     {props.comment.children && props.comment.children.length>0 && showChildrenExpand()}
+                    {(!props.comment.children || !props.comment.children.length>0) && currentUser &&  props.comment.user_id === currentUser.id && showDelete() }
                 </Grid>
             </Grid>
 
@@ -218,4 +242,4 @@ const CommentItem = (props) => {
     );
 }
 
-export default CommentItem;
+export default withRouter(CommentItem);
