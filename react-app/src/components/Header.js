@@ -185,7 +185,7 @@ const Header = (props) => {
                         className={classes.menuButton}
                         edge="start"
                         aria-label="menu"
-                        onClick={() => {history.push('/addImage')}}
+                        onClick={() => {history.push('/create')}}
                     >
                         <AddCircleIcon/>
                         <Typography variant="subtitle1">Add Image</Typography>

@@ -42,8 +42,8 @@ export const changeSort = (sort) => (dispatch) => {
     return Promise.resolve();
 }
 
-export const add = (userId, description, image) => (dispatch) => {
-    return ImagesService.addImage(userId, description, image).then(
+export const add = (userId, title, description, image) => (dispatch) => {
+    return ImagesService.addImage(title, userId, description, image).then(
         (response) => {
             dispatch({
                 type: ADD_IMAGE_SUCCESS,
@@ -58,8 +58,8 @@ export const add = (userId, description, image) => (dispatch) => {
     );
 };
 
-export const edit = (userId, description) => (dispatch) => {
-    return ImagesService.editImage(userId, description)
+export const edit = (id, title, userId, description) => (dispatch) => {
+    return ImagesService.editImage(id, title, userId, description)
         .then((response) => {
             dispatch({
                 type: EDIT_IMAGE_SUCCESS,
@@ -75,8 +75,8 @@ export const edit = (userId, description) => (dispatch) => {
     );
 };
 
-export const update = (userId, description, image) => (dispatch) => {
-    return ImagesService.updateImage(userId, description, image)
+export const update = (id, title, userId, description, image) => (dispatch) => {
+    return ImagesService.updateImage(id, title, userId, description, image)
         .then((response) => {
                 dispatch({
                     type: EDIT_IMAGE_SUCCESS,

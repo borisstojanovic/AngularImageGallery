@@ -47,7 +47,7 @@ const addImage = (title, userId, description, image) => {
     formData.append('owner_id', userId);
     formData.append('description', description);
     formData.append('image', image);
-    return axios.post(API_URL + "images/add", image, {headers: authMultipartHeader()});
+    return axios.post(API_URL + "images/add", formData, {headers: authMultipartHeader()});
 };
 
 const addViews = (image_id) => {

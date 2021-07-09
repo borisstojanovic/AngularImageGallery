@@ -37,7 +37,7 @@ route.post("/signin", bodyParser.json(), (req, res, next) => {
     let formatted = mysql.format(query, [req.body.username]);
     pool.query(formatted, (err, rows) => {
         if(err) return res.status(500).send("Server Error");
-        else if(rows.length === 0)return res.status(404).send({message: "User Doesn't Exist!"});
+        else if(rows.length === 0)return res.status(404).send({message: "Username or password doesn't exist!"});
         else{
             let hash = rows[0].password.toString();
 
@@ -48,7 +48,7 @@ route.post("/signin", bodyParser.json(), (req, res, next) => {
                     });
                     res.status(200).send(rows[0]);
                 }else if(err) res.status(500).send("Server Error");
-                else res.status(403).send("Wrong Password")
+                else res.status(403).send("Username or password doesn't exist!")
             })
         }
     })

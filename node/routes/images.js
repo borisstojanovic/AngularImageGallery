@@ -4,6 +4,7 @@ const { mysql } = require('../utils/database');
 const fs = require('fs');
 const { cloudinary } = require('../utils/cloudinary');
 const authJwt = require("../middleware/authJwt");
+const bodyParser = require('body-parser');
 
 //multer setup
 const uploads = require('./uploads');
@@ -343,14 +344,14 @@ route.get('/getAllForUser/:username/:page/:size/:sort', [authJwt.deserializeUser
     });
 });
 
-route.post('/add', images.single('image'), [authJwt.verifyToken], async (req, res) => {
+route.post('/add', images.single('image'), bodyParser.json(), [authJwt.verifyToken], async (req, res) => {
     if(req.file === undefined){
-        res.status(400).send(new Error('Please submit a file').message);
+        res.status(400).send('Please submit a file');
     }else {
         let {error} = Joi.validate(req.body, scheme);
         if(req.user.user_id !== parseInt(req.body.owner_id)){
             removefile(req.file.path);
-            return res.status(401).send(new Error('Unauthorized edit').sqlMessage);
+            return res.status(401).send('Unauthorized edit');
         }
         if (error) {
             removefile(req.file.path);

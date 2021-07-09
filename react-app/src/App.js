@@ -19,6 +19,7 @@ import { makeStyles } from '@material-ui/core';
 
 import ImageDetails from "./components/ImageDetails";
 import Scroll from "./components/Scroll";
+import ImageCreate from "./components/ImageCreate";
 
 const useStyles = makeStyles((theme) => ({
     toolbar: theme.mixins.toolbar,
@@ -41,6 +42,7 @@ const App = () => {
                           <Route exact path="/profile" component={Profile} />
                           <Route exact path="/images" component={ImagesList} />
                           <Route exact path="/details" component={ImageDetails} />
+                          <Route exact path="/create" component={ImageCreate} />
                       </Switch>
                         <Scroll showBelow={250}/>
                   </div>
