@@ -21,9 +21,6 @@ import Grow from "@material-ui/core/Grow";
 import queryString from "query-string";
 import Container from "@material-ui/core/Container";
 import ImageCommentsList from "./ImageCommentsList";
-import Modal from "@material-ui/core/Modal";
-import Backdrop from "@material-ui/core/Backdrop";
-import Fade from "@material-ui/core/Fade";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import Dialog from "@material-ui/core/Dialog";
 import DialogContent from "@material-ui/core/DialogContent";
@@ -151,7 +148,7 @@ const ImageDetails = (props) => {
             props.history.push('/images');
         }
         dispatch(getImage(search.id));
-    }, [dispatch, props.location.search]);
+    }, [dispatch, props.location.search, props.history]);
 
     //if image was loaded adds a view for that image
     useEffect(() => {
@@ -163,7 +160,7 @@ const ImageDetails = (props) => {
             dispatch(addViews(search.id));
         }
 
-    }, [dispatch, loaded, props.location.search]);
+    }, [dispatch, loaded, props.location.search, props.history]);
 
     return (
         <Container className={classes.container} maxWidth="sm">
@@ -175,7 +172,7 @@ const ImageDetails = (props) => {
                 style={{display: 'flex', flexDirection: 'column', margin: 'auto', width: 'fit-content'}}
                 aria-labelledby="max-width-dialog-title"
             >
-                <DialogTitle><a href={image.path} target="_blank">{image.title}</a> </DialogTitle>
+                <DialogTitle><a href={image.path} target="_blank" rel="noreferrer">{image.title}</a> </DialogTitle>
                 <DialogContent>
                     <img style={{width: "100%"}} src={image.path} alt={image.description}/>
                 </DialogContent>

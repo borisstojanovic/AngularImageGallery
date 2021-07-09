@@ -34,70 +34,15 @@ const getChildren = (id) => {
                 reject(err);
             }else{
                 for(const row of rows){
-                    row.path = cloudinary.url(row.path);
+                    if(row.path && row.path.length > 0){
+                        row.path = cloudinary.url(row.path);
+                    }
                 }
                 resolve(rows);
             }
         })
     })
 }
-
-/*
-route.get('/image/paginated/:id/:page/:size',   (req, res) => {
-    let size = req.params.size;
-    let start = (req.params.page - 1) * size;
-    let query = 'select * from comment where image_id=? order by date_created limit ?,?';
-    let formatted = mysql.format(query, [req.params.id, start, parseInt(size)]);
-    pool.query(formatted, async (err, rows) => {
-        if (err) {
-            res.status(500).send(err.sqlMessage);
-        }
-        else {
-
-            //get user info for each comment
-            for(const row of rows){
-                await getUser(row.user_id)
-                    .then((user) => row.user = user)
-                    .catch((err) => {return res.status(500).send(err)});
-            }
-
-            //recursively check all parents
-            //add the child to children of comment with comment.id = child.comment_id
-            //recursion is possible because query retrieved comments sorted
-            //by time created so each comment must have a parent
-            let recursive = (child, parents) => {
-                for (let value in parents) {
-                    let parent = parents[value];
-                    if (parent.id === child.comment_id) {
-                        parent.children[child.id] = child;
-                        return;
-                    }
-
-                    if(parent.children){
-                        recursive(child, parent.children);
-                    }
-                }
-            }
-            let parents = {}, comment;
-            for (let i = 0; i < rows.length; i++) {
-                comment = rows[i];
-                comment.children = {};
-                let parentId = comment.comment_id;
-                //if the comment doesn't have a parent comment then it is a parent
-                if (!parentId) {
-                    parents[comment.id] = comment;
-                    continue;
-                }
-                recursive(comment, parents)
-            }
-            res.status(200).send(parents);
-        }
-    });
-});
-
-
- */
-
 
 /**
  * used for comment pagination
@@ -126,7 +71,9 @@ route.get('/image/paginated/:id/:startId/:size',   (req, res) => {
             //get user info for each comment
             //get all children for each parent comment
             for(const row of rows){
-                row.path = cloudinary.url(row.path);
+                if(row.path && row.path.length > 0){
+                    row.path = cloudinary.url(row.path);
+                }
                 await getChildren(row.id)
                     .then((children) => row.children = children)
                     .catch((err) => {return res.status(500).send(err)})
@@ -157,7 +104,9 @@ route.get('/comment/:id', (req, res) => {
         if (err)
             res.status(500).send(err.sqlMessage);
         else {
-            rows[0].path = cloudinary.url(rows[0].path);
+            if(rows[0].path && rows[0].path.length > 0){
+                rows[0].path = cloudinary.url(rows[0].path);
+            }
             res.send(rows[0]);
         }
     });
@@ -192,7 +141,7 @@ route.put('/edit/:id', [authJwt.verifyToken], (req, res) => {
                                 if (err)
                                     res.status(500).send(err.message);
                                 else {
-                                    query = 'select * from comment where id=?';
+                                    query = 'select c.*, u.username, u.path from comment c left join user u on u.id = c.user_id where c.id=?';
                                     formated = mysql.format(query, [req.params.id]);
                                     pool.query(formated, (err, rows) => {
                                         if (err)
@@ -201,6 +150,9 @@ route.put('/edit/:id', [authJwt.verifyToken], (req, res) => {
                                             if (rows[0] === undefined)
                                                 res.status(400).send(new Error('Comment doesn\'t exist').message);
                                             else {
+                                                if(rows[0].path && rows[0].path.length > 0){
+                                                    rows[0].path = cloudinary.url(rows[0].path);
+                                                }
                                                 res.status(200).send(rows[0]);
                                             }
                                         }
@@ -242,7 +194,9 @@ route.post('/comment', [authJwt.verifyToken], (req, res) => {
                     if(err){
                         res.status(500).send(err.sqlMessage);
                     }else{
-                        rows[0].path = cloudinary.url(rows[0].path);
+                        if(rows[0].path && rows[0].path.length>0){
+                            rows[0].path = cloudinary.url(rows[0].path);
+                        }
                         res.status(200).send(rows[0]);
                     }
                 });

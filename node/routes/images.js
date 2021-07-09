@@ -67,7 +67,7 @@ function getUser(id) {
             if(err){
                 reject(err)
             }else{
-                if(response[0].path) response[0].path = cloudinary.url(response[0].path);
+                if(response[0].path && response[0].path.length > 0) response[0].path = cloudinary.url(response[0].path);
                 resolve(response[0])
             }
         })

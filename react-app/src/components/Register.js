@@ -7,8 +7,6 @@ import { register } from "../actions/auth";
 import {clearMessage, setMessage} from "../actions/apiMessage";
 import Container from "@material-ui/core/Container";
 import CssBaseline from "@material-ui/core/CssBaseline";
-import Avatar from "@material-ui/core/Avatar";
-import Typography from "@material-ui/core/Typography";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import Snackbar from "@material-ui/core/Snackbar";
@@ -197,6 +195,10 @@ const Register = ({history}) => {
         dispatch(setMessage(""));
     }
 
+    const handleImageErrorClose = () => {
+        setImageError("");
+    }
+
     const clearFields = () => {
         setPassword({value: "", error: password.error});
         passwordRef.current.value = "";
@@ -224,7 +226,7 @@ const Register = ({history}) => {
                      id="imgDisplay"
                      ref={imageRef}
                      src="betterCroppedImage.jpg"
-                     alt="Profile Image"
+                     alt="Profile"
                      className="profile-img-card"
                      onClick={imageClick}
                  />
@@ -302,8 +304,11 @@ const Register = ({history}) => {
                     >
                         Sign Up
                     </Button>
-                    <Snackbar open={message !== undefined && message.length > 0} autoHideDuration={6000} onClose={handleClose}>
+                    <Snackbar open={(message !== undefined && message.length > 0)} autoHideDuration={6000} onClose={handleClose}>
                         <Alert onClose={handleClose} severity="error">{message}</Alert>
+                    </Snackbar>
+                    <Snackbar open={imageError.length>0} autoHideDuration={6000} onClose={handleImageErrorClose}>
+                        <Alert onClose={handleImageErrorClose} severity="error">{imageError}</Alert>
                     </Snackbar>
                     <Grid container>
                         <Grid item>
@@ -322,97 +327,6 @@ const Register = ({history}) => {
             </div>
         </Container>
     )
-    /*
-
-    return (
-        <div style={{justifyContent: "center"}}>
-            <div className="card card-container">
-                <input id="imageInput"
-                       accept="image/*"
-                       type="file"
-                       style={{display: 'none'}}
-                       onChange={onChangeImage}
-                />
-
-                <img
-                    id="imgDisplay"
-                    src="//ssl.gstatic.com/accounts/ui/avatar_2x.png"
-                    alt="Profile Image"
-                    className="profile-img-card"
-                    onClick={imageClick}
-                />
-
-                <Form onSubmit={handleRegister} ref={form}>
-                    {!successful && (
-                        <div>
-                            <div className="form-group">
-                                <label htmlFor="username">Username</label>
-                                <Input
-                                    type="text"
-                                    className="form-control"
-                                    name="username"
-                                    value={username}
-                                    onChange={onChangeUsername}
-                                    validations={[required, vusername]}
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label htmlFor="email">Email</label>
-                                <Input
-                                    type="text"
-                                    className="form-control"
-                                    name="email"
-                                    value={email}
-                                    onChange={onChangeEmail}
-                                    validations={[required, validEmail]}
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label htmlFor="password">Password</label>
-                                <Input
-                                    type="password"
-                                    className="form-control"
-                                    name="password"
-                                    value={password}
-                                    onChange={onChangePassword}
-                                    validations={[required, vpassword]}
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label htmlFor="password2">Password2</label>
-                                <Input
-                                    type="password"
-                                    className="form-control"
-                                    name="password"
-                                    value={password2}
-                                    onChange={onChangePassword2}
-                                    validations={[required, vpassword]}
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <button className="btn btn-primary btn-block">Sign Up</button>
-                            </div>
-                        </div>
-                    )}
-
-                    {message && (
-                        <div className="form-group">
-                            <div className={ successful ? "alert alert-success" : "alert alert-danger" } role="alert">
-                                {message}
-                            </div>
-                        </div>
-                    )}
-                    <CheckButton style={{ display: "none" }} ref={checkBtn} />
-                </Form>
-            </div>
-        </div>
-    );
-
-     */
 };
 
 export default Register;

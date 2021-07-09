@@ -219,7 +219,12 @@ const CommentItem = (props) => {
     return (
         <Grid container wrap="nowrap" spacing={1}>
             <Grid item>
-                <Avatar className={classes.medium} alt="User" src={props.comment.path} />
+                {(props.comment.path && props.comment.path.length>0) &&
+                <Avatar className={classes.medium} alt="User" src={props.comment.path} >{props.comment.username.substring(0,1)}</Avatar>
+                }
+                {(!props.comment.path || !props.comment.path.length>0) &&
+                <Avatar className={classes.medium} alt="User" src={props.comment.path} >{props.comment.username.substring(0,1)}</Avatar>
+                }
             </Grid>
             <Grid item xs zeroMinWidth={true}>
                 <Typography variant={"body2"} component={"p"} style={{ fontWeight: "bold", margin: 0, textAlign: "left", wordWrap: "break-word" }}>

@@ -30,6 +30,7 @@ const ImagesList = (props) => {
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState("");
     const [loaded, setLoaded] = useState(false);
+    const [imagesLoaded, setImagesLoaded] = useState(false);
     const size = 20;
     const dispatch = useDispatch();
 
@@ -53,12 +54,18 @@ const ImagesList = (props) => {
             return;
         }
         if(search.length === 0){
-            dispatch(getAllPaginatedSort(page, size, sort));
+            dispatch(getAllPaginatedSort(page, size, sort)).then((response) => {
+                setImagesLoaded(true);
+            });
         }else {
             if (search.startsWith("@")) {
-                dispatch(getAllForUser(search.substring(1), page, size, sort));
+                dispatch(getAllForUser(search.substring(1), page, size, sort)).then((response) => {
+                    setImagesLoaded(true);
+                })
             } else {
-                dispatch(getAllByTitle(search, page, size, sort));
+                dispatch(getAllByTitle(search, page, size, sort)).then((response) => {
+                    setImagesLoaded(true);
+                });
             }
         }
     }, [dispatch, sort, page, search, loaded]);
@@ -80,44 +87,50 @@ const ImagesList = (props) => {
     };
 
     return (
+
         <div>
-            <FormControl>
-                <NativeSelect
-                    value={sort}
-                    onChange={handleChange}
-                    name="sort"
-                    className={classes.selectEmpty}
-                    inputProps={{ 'aria-label': 'sort' }}
-                >
-                    <option value={"newest"}>Sort by newest</option>
-                    <option value={"views"}>Sort by views</option>
-                    <option value={"likes"}>Sort by likes</option>
-                </NativeSelect>
-                <FormHelperText>Sort By</FormHelperText>
-            </FormControl>
-            <InfiniteScroll
-                dataLength={images.length}
-                next={getAllImages}
-                hasMore={!allLoaded}
-                loader={<h4>Loading...</h4>}
-                endMessage={
-                    <p style={{ textAlign: 'center' }}>
-                        <b>Yay! You have seen it all</b>
-                    </p>
-                }
-            >
-                <Masonry
-                    breakpointCols={breakpointColumnsObj}
-                    className="my-masonry-grid"
-                    columnClassName="my-masonry-grid_column"
-                >
-                        {images.map((image) => (
-                            <div key={image.id}>
-                                <ImageItem image={image}/>
-                            </div>
-                        ))}
-                </Masonry>
-            </InfiniteScroll>
+            {imagesLoaded &&
+                <div>
+                    <FormControl>
+                        <NativeSelect
+                            value={sort}
+                            onChange={handleChange}
+                            name="sort"
+                            className={classes.selectEmpty}
+                            inputProps={{ 'aria-label': 'sort' }}
+                        >
+                            <option value={"newest"}>Sort by newest</option>
+                            <option value={"views"}>Sort by views</option>
+                            <option value={"likes"}>Sort by likes</option>
+                        </NativeSelect>
+                        <FormHelperText>Sort By</FormHelperText>
+                    </FormControl>
+                    <InfiniteScroll
+                        dataLength={images.length}
+                        next={getAllImages}
+                        hasMore={!allLoaded}
+                        loader={<h4>Loading...</h4>}
+                        endMessage={
+                            <p style={{ textAlign: 'center' }}>
+                                <b>Yay! You have seen it all</b>
+                            </p>
+                        }
+                    >
+                        <Masonry
+                            breakpointCols={breakpointColumnsObj}
+                            className="my-masonry-grid"
+                            columnClassName="my-masonry-grid_column"
+                        >
+                            {images.map((image) => (
+                                <div key={image.id}>
+                                    <ImageItem image={image}/>
+                                </div>
+                            ))}
+                        </Masonry>
+                    </InfiniteScroll>
+                </div>
+            }
+
         </div>
     );
 }

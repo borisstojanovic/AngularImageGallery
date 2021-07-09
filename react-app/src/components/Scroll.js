@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {makeStyles} from "@material-ui/core/styles";
 import {IconButton} from "@material-ui/core";
 import ExpandLessIcon from "@material-ui/icons/ExpandLess";
@@ -26,9 +26,9 @@ const Scroll = ({showBelow}) => {
 
     const [show, setShow] = useState(!showBelow);
 
-    const handleScroll = () => {
+    const handleScroll = useCallback(() => {
         setShow(window.pageYOffset>showBelow);
-    }
+    }, [showBelow]);
 
     const handleClick = () => {
         window['scrollTo']({top: 0, behavior: 'smooth'});
@@ -39,7 +39,7 @@ const Scroll = ({showBelow}) => {
             window.addEventListener('scroll', handleScroll);
             return () => window.removeEventListener('scroll', handleScroll);
         }
-    }, [showBelow]);
+    }, [showBelow, handleScroll]);
 
     return (
         <div>

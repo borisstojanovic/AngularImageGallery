@@ -7,9 +7,6 @@ import TextField from "@material-ui/core/TextField";
 import CommentItem from "./CommentItem";
 import Divider from "@material-ui/core/Divider";
 import Paper from "@material-ui/core/Paper";
-import queryString from "query-string";
-import Grid from "@material-ui/core/Grid";
-import Link from "@material-ui/core/Link";
 
 const ImageCommentsList = (props) => {
     const {comments, allLoaded, size} = useSelector((state) => state.comments);
@@ -41,7 +38,7 @@ const ImageCommentsList = (props) => {
             return;
         }
         dispatch(getAllCommentsPaginated(imageId, startId, size));
-    }, [dispatch, startId, imageId, loaded]);
+    }, [dispatch, startId, imageId, loaded, size]);
 
     const onChangeComment = (e) => {
         const newComment = e.target.value;

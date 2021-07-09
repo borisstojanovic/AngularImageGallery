@@ -23,7 +23,7 @@ const Profile = () => {
             <Image className="profile-img-card" cloudName="dylv4eyvu" publicId={currentUser.path}/>
             }
             {(!currentUser || currentUser.path.length === 0) &&
-            <img className="profile-img-card" src="betterCroppedImage.jpg"/>
+            <img alt="Placeholder" className="profile-img-card" src="betterCroppedImage.jpg"/>
             }
 
             <p>
