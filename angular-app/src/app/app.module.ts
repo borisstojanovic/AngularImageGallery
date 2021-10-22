@@ -7,6 +7,9 @@ import { ImagesComponent } from './images/images.component';
 import { ImagesListComponent } from './images/images-list/images-list.component';
 import { ImageEditComponent } from './images/image-edit/image-edit.component';
 import { ImageDetailsComponent } from './images/image-details/image-details.component';
+import { AuthComponent } from './auth/auth.component';
+import { AuthLoginComponent } from './auth/auth-login/auth-login.component';
+import { AuthSignupComponent } from './auth/auth-signup/auth-signup.component';
 
 @NgModule({
   declarations: [
@@ -15,7 +18,10 @@ import { ImageDetailsComponent } from './images/image-details/image-details.comp
     ImagesComponent,
     ImagesListComponent,
     ImageEditComponent,
-    ImageDetailsComponent
+    ImageDetailsComponent,
+    AuthComponent,
+    AuthLoginComponent,
+    AuthSignupComponent
   ],
   imports: [
     BrowserModule
